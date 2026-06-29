@@ -279,6 +279,19 @@ function DashboardContent() {
     return () => window.removeEventListener("lifesaver_notification_update", updateList);
   }, []);
 
+  // Health Companion State
+  const [healthWater, setHealthWater] = useState(3);
+  const [healthWaterGoal, setHealthWaterGoal] = useState(8);
+  const [healthSitting, setHealthSitting] = useState(45);
+  const [healthBreaks, setHealthBreaks] = useState(2);
+
+  const [waterInterval, setWaterInterval] = useState("1");
+  const [standInterval, setStandInterval] = useState("45");
+  const [waterEnabled, setWaterEnabled] = useState(true);
+  const [standEnabled, setStandEnabled] = useState(true);
+  const [medicineEnabled, setMedicineEnabled] = useState(false);
+  const [mealsEnabled, setMealsEnabled] = useState(false);
+
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
@@ -1737,6 +1750,271 @@ function DashboardContent() {
                       </div>
                     );
                   })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── HEALTH TAB ── */}
+        {activeTab === "health" && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Header */}
+            <div className="bg-card border border-border rounded-[var(--radius)] p-6 shadow-sm">
+              <div className="border-b border-border pb-4">
+                <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <IconHeart className="h-4.5 w-4.5 text-rose-500 shrink-0" /> Health Companion & Well-being
+                </h2>
+                <p className="text-[10px] text-muted-foreground">Keep your body and mind healthy while working. Log physical state and configure active break timers.</p>
+              </div>
+
+              {/* Metrics Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
+                {/* Sitting Tracker */}
+                <div className="p-4 border border-border rounded-xl bg-background/50 space-y-3">
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                    <span>Sitting Duration</span>
+                    <span className={healthSitting >= 60 ? "text-rose-500 font-extrabold animate-pulse" : ""}>
+                      {healthSitting} min
+                    </span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-300 ${healthSitting >= 60 ? "bg-rose-500" : "bg-secondary"}`} 
+                      style={{ width: `${Math.min(100, (healthSitting / 60) * 100)}%` }} 
+                    />
+                  </div>
+                  <p className="text-[9px] text-muted-foreground leading-normal">
+                    {healthSitting >= 60 ? "⚠️ You've been sitting too long! Take a stretch break." : "Keep working. Stand up for 2 minutes soon."}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setHealthSitting(0);
+                      setHealthBreaks(prev => prev + 1);
+                      addNotification(
+                        "Break Taken! 🚶‍♂️",
+                        "Great job standing up and stretching. Your sitting timer is reset.",
+                        "update"
+                      );
+                    }}
+                    className="w-full bg-secondary hover:bg-secondary/95 text-white font-extrabold text-[10px] py-1.5 rounded-lg shadow-sm cursor-pointer transition-colors"
+                  >
+                    Take active break 🚶‍♂️
+                  </button>
+                </div>
+
+                {/* Water Intake Tracker */}
+                <div className="p-4 border border-border rounded-xl bg-background/50 space-y-3">
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                    <span>Water Intake</span>
+                    <span className="text-primary font-extrabold">{healthWater} / {healthWaterGoal} cups</span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="bg-primary h-full rounded-full transition-all duration-300" style={{ width: `${Math.min(100, (healthWater / healthWaterGoal) * 100)}%` }} />
+                  </div>
+                  <p className="text-[9px] text-muted-foreground leading-normal">
+                    {healthWater < healthWaterGoal ? "Drink more to stay hydrated." : "🏆 Hydration goal reached today! Amazing."}
+                  </p>
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => setHealthWater(prev => Math.max(0, prev - 1))}
+                      className="flex-1 bg-muted hover:bg-muted/80 text-foreground font-bold text-[10px] py-1.5 rounded-lg border border-border cursor-pointer transition-colors"
+                    >
+                      -1 Cup
+                    </button>
+                    <button
+                      onClick={() => {
+                        setHealthWater(prev => prev + 1);
+                        if (healthWater + 1 === healthWaterGoal) {
+                          addNotification(
+                            "Goal Complete! 💧",
+                            "You achieved your daily water intake companion target.",
+                            "update"
+                          );
+                        }
+                      }}
+                      className="flex-1 bg-primary text-white font-extrabold text-[10px] py-1.5 rounded-lg cursor-pointer transition-colors"
+                    >
+                      +1 Cup 🥤
+                    </button>
+                  </div>
+                </div>
+
+                {/* Breaks Tracker */}
+                <div className="p-4 border border-border rounded-xl bg-background/50 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block">Breaks Logged</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-extrabold text-foreground">{healthBreaks}</span>
+                      <span className="text-[10px] text-muted-foreground">stretches today</span>
+                    </div>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground leading-normal mt-2">
+                    Taking breaks resets visual fatigue, reduces lumbar strains, and improves focus blocks.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Timers & Intervals Schedule */}
+            <div className="bg-card border border-border rounded-[var(--radius)] p-6 shadow-sm space-y-4">
+              <h3 className="text-xs font-bold text-foreground border-b border-border pb-3 flex items-center gap-1.5">
+                ⏰ Reminders & Active Break Schedules
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                {/* Water Reminders */}
+                <div className="p-4 border border-border rounded-xl bg-background/50 space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <h4 className="text-[11px] font-extrabold text-foreground">Hydration Reminders</h4>
+                      <p className="text-[9px] text-muted-foreground">Interval alert to stay hydrated.</p>
+                    </div>
+                    <button
+                      onClick={() => setWaterEnabled(!waterEnabled)}
+                      className={`text-[9px] font-bold px-2 py-1 rounded-full border transition-colors ${
+                        waterEnabled ? "bg-primary text-white border-primary" : "bg-muted text-muted-foreground border-border"
+                      }`}
+                    >
+                      {waterEnabled ? "ON" : "OFF"}
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-bold text-muted-foreground uppercase block">Interval frequency</label>
+                    <select
+                      value={waterInterval}
+                      onChange={(e) => setWaterInterval(e.target.value)}
+                      disabled={!waterEnabled}
+                      className="w-full text-[10px] bg-background border border-border rounded-lg p-2 font-semibold cursor-pointer outline-none focus:border-primary"
+                    >
+                      <option value="1">Every 1 Hour (8 times a day)</option>
+                      <option value="2">Every 2 Hours (4 times a day)</option>
+                      <option value="3">Every 3 Hours (3 times a day)</option>
+                      <option value="4">Every 4 Hours (2 times a day)</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={() => {
+                      addNotification(
+                        "Drink Water! 💧",
+                        "Time to hydrate. Drink a glass of cold water to boost energy.",
+                        "update"
+                      );
+                    }}
+                    className="w-full text-center text-[9px] font-bold text-primary hover:underline block pt-1.5"
+                  >
+                    Test Alarm Chime
+                  </button>
+                </div>
+
+                {/* Stand Up Reminders */}
+                <div className="p-4 border border-border rounded-xl bg-background/50 space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <h4 className="text-[11px] font-extrabold text-foreground">Stretch & Stand Up Reminders</h4>
+                      <p className="text-[9px] text-muted-foreground">Alert to stand up and avoid fatigue.</p>
+                    </div>
+                    <button
+                      onClick={() => setStandEnabled(!standEnabled)}
+                      className={`text-[9px] font-bold px-2 py-1 rounded-full border transition-colors ${
+                        standEnabled ? "bg-primary text-white border-primary" : "bg-muted text-muted-foreground border-border"
+                      }`}
+                    >
+                      {standEnabled ? "ON" : "OFF"}
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-bold text-muted-foreground uppercase block">Interval frequency</label>
+                    <select
+                      value={standInterval}
+                      onChange={(e) => setStandInterval(e.target.value)}
+                      disabled={!standEnabled}
+                      className="w-full text-[10px] bg-background border border-border rounded-lg p-2 font-semibold cursor-pointer outline-none focus:border-primary"
+                    >
+                      <option value="30">Every 30 Minutes</option>
+                      <option value="45">Every 45 Minutes</option>
+                      <option value="60">Every 60 Minutes</option>
+                      <option value="90">Every 90 Minutes</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={() => {
+                      addNotification(
+                        "Time to Stand Up & Stretch! 🚶‍♂️",
+                        "Stand up, roll your shoulders, and do a quick 2-minute stretch to reset posture.",
+                        "update"
+                      );
+                    }}
+                    className="w-full text-center text-[9px] font-bold text-primary hover:underline block pt-1.5"
+                  >
+                    Test Alarm Chime
+                  </button>
+                </div>
+
+                {/* Medicine Tracker */}
+                <div className="p-4 border border-border rounded-xl bg-background/50 space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <h4 className="text-[11px] font-extrabold text-foreground">Medicine Schedule</h4>
+                      <p className="text-[9px] text-muted-foreground">Periodic prompts to take daily doses.</p>
+                    </div>
+                    <button
+                      onClick={() => setMedicineEnabled(!medicineEnabled)}
+                      className={`text-[9px] font-bold px-2 py-1 rounded-full border transition-colors ${
+                        medicineEnabled ? "bg-primary text-white border-primary" : "bg-muted text-muted-foreground border-border"
+                      }`}
+                    >
+                      {medicineEnabled ? "ON" : "OFF"}
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground leading-relaxed">
+                    Once enabled, the companion checks your custom medicine log schedules to fire alarms in the morning, afternoon, and night blocks.
+                  </p>
+                  <button
+                    onClick={() => {
+                      addNotification(
+                        "Medicine Reminder 💊",
+                        "Time to take your scheduled dose. Take it with water after meals.",
+                        "deadline"
+                      );
+                    }}
+                    className="w-full text-center text-[9px] font-bold text-primary hover:underline block pt-1.5"
+                  >
+                    Test Alarm Chime
+                  </button>
+                </div>
+
+                {/* Meal Times */}
+                <div className="p-4 border border-border rounded-xl bg-background/50 space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <h4 className="text-[11px] font-extrabold text-foreground">Meal Time Alerts</h4>
+                      <p className="text-[9px] text-muted-foreground">Reminders to maintain consistent energy.</p>
+                    </div>
+                    <button
+                      onClick={() => setMealsEnabled(!mealsEnabled)}
+                      className={`text-[9px] font-bold px-2 py-1 rounded-full border transition-colors ${
+                        mealsEnabled ? "bg-primary text-white border-primary" : "bg-muted text-muted-foreground border-border"
+                      }`}
+                    >
+                      {mealsEnabled ? "ON" : "OFF"}
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground leading-relaxed">
+                    Tracks key breaks for breakfast, lunch, and dinner to ensure you maintain consistent physical energy during hectic coding sessions.
+                  </p>
+                  <button
+                    onClick={() => {
+                      addNotification(
+                        "Meal Time Reminder 🍱",
+                        "Step away from the screen and fuel up. Don't skip meals!",
+                        "event"
+                      );
+                    }}
+                    className="w-full text-center text-[9px] font-bold text-primary hover:underline block pt-1.5"
+                  >
+                    Test Alarm Chime
+                  </button>
                 </div>
               </div>
             </div>
