@@ -14,6 +14,58 @@ import {
   TimeBlock 
 } from "@/lib/firebase";
 
+// ─── Encouragement messages ──────────────────────────────────────────────────
+const ENCOURAGE = [
+  "🌟 Amazing! Keep that momentum!",
+  "🔥 You're on fire! One step closer!",
+  "💪 That's the spirit! You've got this!",
+  "✨ Brilliant! Progress feels good, right?",
+  "🚀 You're flying! Almost there!",
+  "🎯 Bull's-eye! Stay focused!",
+  "🌈 Wonderful! Keep going!",
+];
+
+// ─── Ambient Sound Engine (Web Audio API) ────────────────────────────────────
+type SoundType = "none" | "rain" | "cafe" | "forest";
+
+function createAmbientSound(ctx: AudioContext, type: SoundType): AudioNode | null {
+  if (type === "none") return null;
+
+  const bufferSize = 4096;
+  const noise = ctx.createScriptProcessor(bufferSize, 1, 1);
+  noise.onaudioprocess = (e) => {
+    const output = e.outputBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+  };
+
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+  gain.gain.value = 0.06;
+
+  if (type === "rain") {
+    filter.type = "bandpass";
+    filter.frequency.value = 600;
+    filter.Q.value = 0.4;
+  } else if (type === "cafe") {
+    filter.type = "lowpass";
+    filter.frequency.value = 800;
+    filter.Q.value = 0.8;
+    gain.gain.value = 0.04;
+  } else if (type === "forest") {
+    filter.type = "bandpass";
+    filter.frequency.value = 300;
+    filter.Q.value = 0.5;
+    gain.gain.value = 0.035;
+  }
+
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  return gain;
+}
+
 export default function FocusMode() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -22,35 +74,47 @@ export default function FocusMode() {
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   
-  // Pomodoro states
+  // Timer states
   const [timerMinutes, setTimerMinutes] = useState(25);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerMode, setTimerMode] = useState<"focus" | "break">("focus");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Sub-steps & Velocity Recalibration states
+  // Sub-steps & tracking
   const [subSteps, setSubSteps] = useState<Array<{ id: string; text: string; completed: boolean }>>([]);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const elapsedRef = useRef<NodeJS.Timeout | null>(null);
   
-  const [recalibrationAlert, setRecalibrationAlert] = useState<{ message: string; shiftMinutes: number } | null>(null);
+  const [runningBehind, setRunningBehind] = useState<{ shiftMinutes: number } | null>(null);
+  const [encouragement, setEncouragement] = useState<string | null>(null);
+  const encourageTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Crisis Communication state
+  // Ambient Sound
+  const [soundType, setSoundType] = useState<SoundType>("none");
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const soundNodeRef = useRef<AudioNode | null>(null);
+
+  // Crisis Communication
   const [stakeholder, setStakeholder] = useState("Client");
+  const [disposition, setDisposition] = useState("Critical & Strict");
   const [communicationDraft, setCommunicationDraft] = useState<string | null>(null);
   const [isGeneratingComm, setIsGeneratingComm] = useState(false);
   const [isCommSent, setIsCommSent] = useState(false);
   const [commModel, setCommModel] = useState("");
+  
+  // Stuck helper
+  const [stepSuggestions, setStepSuggestions] = useState<Record<string, { text: string; loading: boolean }>>({});
+
+  // Check-in toast
+  const [showCheckin, setShowCheckin] = useState(false);
+  const checkinRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     async function checkAuthAndLoad() {
       const user = await getCurrentUser();
-      if (!user) {
-        window.location.href = "/login";
-        return;
-      }
+      if (!user) { window.location.href = "/login"; return; }
       setCurrentUser(user);
       setLoadingUser(false);
 
@@ -69,19 +133,18 @@ export default function FocusMode() {
         setActiveTask(currentTask);
         setTimerMinutes(settings.pomodoroConfig?.focusDuration || 25);
         
-        const steps = [
-          { id: "step_1", text: "Establish core goals and outline structure", completed: false },
-          { id: "step_2", text: "Draft initial rough content / prototype layout", completed: false },
-          { id: "step_3", text: "Integrate review feedback and polish assets", completed: false },
-          { id: "step_4", text: "Run final verification and package delivery", completed: false }
-        ];
-        setSubSteps(steps);
+        setSubSteps([
+          { id: "step_1", text: "Set your goal — what does 'done' look like?", completed: false },
+          { id: "step_2", text: "Do the first small thing to get started", completed: false },
+          { id: "step_3", text: "Review and improve your work", completed: false },
+          { id: "step_4", text: "Final check — is it ready?", completed: false }
+        ]);
       }
     }
     checkAuthAndLoad();
   }, []);
 
-  // Pomodoro Timer Logic
+  // Timer loop
   useEffect(() => {
     if (isTimerRunning) {
       timerRef.current = setInterval(() => {
@@ -93,173 +156,179 @@ export default function FocusMode() {
         } else {
           clearInterval(timerRef.current!);
           setIsTimerRunning(false);
-          alert(timerMode === "focus" ? "Great focus! Take a break." : "Break over! Ready to focus?");
+          alert(timerMode === "focus" ? "⏰ Time's up! Great focus session. Take a short break." : "☕ Break over! Ready to dive back in?");
           toggleTimerMode();
         }
       }, 1000);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
     }
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [isTimerRunning, timerMinutes, timerSeconds, timerMode]);
 
-  // Elapsed stopwatch tracking (for Velocity calculation)
+  // Elapsed seconds counter
   useEffect(() => {
     if (isTimerRunning && timerMode === "focus") {
       if (!startTime) setStartTime(Date.now());
-      elapsedRef.current = setInterval(() => {
-        setElapsedSeconds(prev => prev + 1);
-      }, 1000);
+      elapsedRef.current = setInterval(() => setElapsedSeconds(prev => prev + 1), 1000);
     } else {
       if (elapsedRef.current) clearInterval(elapsedRef.current);
     }
-
-    return () => {
-      if (elapsedRef.current) clearInterval(elapsedRef.current);
-    };
+    return () => { if (elapsedRef.current) clearInterval(elapsedRef.current); };
   }, [isTimerRunning, timerMode, startTime]);
 
-  const toggleTimerMode = () => {
-    const isNextBreak = timerMode === "focus";
-    setTimerMode(isNextBreak ? "break" : "focus");
-    setTimerMinutes(isNextBreak ? 5 : 25);
+  // 10-minute check-in
+  useEffect(() => {
+    if (isTimerRunning && timerMode === "focus") {
+      checkinRef.current = setInterval(() => setShowCheckin(true), 10 * 60 * 1000);
+    } else {
+      if (checkinRef.current) clearInterval(checkinRef.current);
+    }
+    return () => { if (checkinRef.current) clearInterval(checkinRef.current); };
+  }, [isTimerRunning, timerMode]);
+
+  // Ambient sound control
+  useEffect(() => {
+    // Stop existing sound
+    if (soundNodeRef.current && audioCtxRef.current) {
+      try { (soundNodeRef.current as GainNode).gain.setValueAtTime(0, audioCtxRef.current.currentTime); } catch {}
+      soundNodeRef.current = null;
+    }
+
+    if (soundType !== "none") {
+      if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") ctx.resume();
+      soundNodeRef.current = createAmbientSound(ctx, soundType);
+    }
+
+    return () => {
+      if (soundNodeRef.current && audioCtxRef.current) {
+        try { (soundNodeRef.current as GainNode).gain.setValueAtTime(0, audioCtxRef.current.currentTime); } catch {}
+      }
+    };
+  }, [soundType]);
+
+  const toggleTimerMode = async () => {
+    const settings = await getSettings();
+    if (timerMode === "focus") {
+      setTimerMode("break");
+      setTimerMinutes(settings.pomodoroConfig?.breakDuration || 5);
+    } else {
+      setTimerMode("focus");
+      setTimerMinutes(settings.pomodoroConfig?.focusDuration || 25);
+    }
     setTimerSeconds(0);
   };
 
-  const handleStartPause = () => {
-    setIsTimerRunning(!isTimerRunning);
-  };
+  const handleStartPause = () => setIsTimerRunning(!isTimerRunning);
 
-  const handleReset = () => {
+  const handleReset = async () => {
     setIsTimerRunning(false);
-    setTimerMinutes(25);
+    const settings = await getSettings();
+    setTimerMinutes(settings.pomodoroConfig?.focusDuration || 25);
     setTimerSeconds(0);
     setElapsedSeconds(0);
     setStartTime(null);
-    setRecalibrationAlert(null);
+    setRunningBehind(null);
   };
 
-  // Check off a sub-step and perform Velocity-Aware Live Recalibration
-  const handleToggleSubStep = async (stepId: string) => {
-    if (!activeTask) return;
+  const handleToggleSubStep = (stepId: string) => {
+    const updated = subSteps.map(s => s.id === stepId ? { ...s, completed: !s.completed } : s);
+    setSubSteps(updated);
 
-    const updatedSteps = subSteps.map(s => 
-      s.id === stepId ? { ...s, completed: !s.completed } : s
-    );
-    setSubSteps(updatedSteps);
+    const justCompleted = updated.find(s => s.id === stepId)?.completed;
+    if (justCompleted) {
+      // Show encouragement
+      const msg = ENCOURAGE[Math.floor(Math.random() * ENCOURAGE.length)];
+      setEncouragement(msg);
+      if (encourageTimer.current) clearTimeout(encourageTimer.current);
+      encourageTimer.current = setTimeout(() => setEncouragement(null), 3000);
 
-    const completedCount = updatedSteps.filter(s => s.completed).length;
-    const totalCount = updatedSteps.length;
-    if (completedCount === 0) return;
-
-    const taskEstMin = activeTask.estimatedDuration || 30;
-    const elapsedMin = elapsedSeconds / 60;
-    const progressFraction = completedCount / totalCount;
-    const expectedTimeForProgress = progressFraction * taskEstMin;
-
-    const velocityRatio = elapsedMin / expectedTimeForProgress;
-
-    if (velocityRatio > 1.15) {
-      const newTotalEst = taskEstMin * velocityRatio;
-      const shiftMinutes = Math.ceil(newTotalEst - taskEstMin);
-
-      if (shiftMinutes > 0) {
-        setRecalibrationAlert({
-          message: `⚠️ Real-Time Calibration: Velocity check indicates you are taking longer. Downstream blocks pushed forward by +${shiftMinutes}m.`,
-          shiftMinutes
-        });
-
-        const bs = await getTimeBlocks();
-        const updatedBlocks = bs.map(b => {
-          const activeBlock = bs.find(ab => ab.taskId === activeTask.id);
-          if (!activeBlock) return b;
-
-          const blockStart = new Date(b.startTime).getTime();
-          const activeStart = new Date(activeBlock.startTime).getTime();
-
-          if (b.taskId === activeTask.id) {
-            const currentEnd = new Date(b.endTime);
-            currentEnd.setMinutes(currentEnd.getMinutes() + shiftMinutes);
-            return { ...b, endTime: currentEnd.toISOString() };
-          } else if (blockStart > activeStart) {
-            const currentStart = new Date(b.startTime);
-            const currentEnd = new Date(b.endTime);
-            currentStart.setMinutes(currentStart.getMinutes() + shiftMinutes);
-            currentEnd.setMinutes(currentEnd.getMinutes() + shiftMinutes);
-            return { ...b, startTime: currentStart.toISOString(), endTime: currentEnd.toISOString() };
+      // Velocity check
+      if (activeTask) {
+        const completedCount = updated.filter(s => s.completed).length;
+        if (completedCount > 0 && elapsedSeconds > 30) {
+          const expectedProgress = completedCount / updated.length;
+          const totalEstimatedDuration = activeTask.estimatedDuration || 60;
+          const actualElapsedMinutes = elapsedSeconds / 60;
+          const velocity = actualElapsedMinutes / (expectedProgress * totalEstimatedDuration);
+          
+          if (velocity > 1.15) {
+            const expectedDuration = totalEstimatedDuration * velocity;
+            const shiftMinutes = Math.ceil(expectedDuration - totalEstimatedDuration);
+            setRunningBehind({ shiftMinutes });
+          } else {
+            setRunningBehind(null);
           }
-          return b;
-        });
-
-        await clearAllTimeBlocks();
-        await saveTimeBlocks(updatedBlocks);
-        setTimeBlocks(updatedBlocks);
+        }
       }
     }
   };
 
-  // Complete Active Task
   const handleCompleteActiveTask = async () => {
     if (!activeTask) return;
-
     activeTask.status = "completed";
-    activeTask.actualDuration = Math.round(elapsedSeconds / 60);
+    activeTask.actualDuration = Math.ceil(elapsedSeconds / 60) || 5;
     activeTask.updatedAt = new Date().toISOString();
     await saveTask(activeTask);
-
-    alert(`Task "${activeTask.title}" marked completed! Actual time spent: ${activeTask.actualDuration}m.`);
+    const updatedBlocks = timeBlocks.filter(b => b.taskId !== activeTask.id);
+    await clearAllTimeBlocks();
+    await saveTimeBlocks(updatedBlocks);
+    alert(`🎉 Amazing work! "${activeTask.title}" is done! Going back to your task list.`);
     window.location.href = "/dashboard";
   };
 
-  // Generate Crisis Stakeholder Shield communication
   const handleGenerateCrisisCommunication = async () => {
     if (!activeTask) return;
-
     setIsGeneratingComm(true);
     setCommunicationDraft(null);
     setIsCommSent(false);
-
     try {
       const response = await fetch("/api/crisis-communication", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          taskId: activeTask.id, 
-          stakeholderType: stakeholder 
-        }),
+        body: JSON.stringify({ taskId: activeTask.id, stakeholderType: stakeholder, disposition }),
       });
       const data = await response.json();
       if (data.error) throw new Error(data.error);
-
       setCommunicationDraft(data.draft);
       setCommModel(data.modelUsed);
-    } catch (e) {
-      console.error(e);
-      alert("Failed to draft crisis message");
+    } catch (err) {
+      console.error(err);
+      alert("Couldn't write the message. Please try again.");
     } finally {
       setIsGeneratingComm(false);
     }
   };
 
-  // Approve and Send Extension
+  const handleStuckClick = async (stepId: string, stepText: string) => {
+    if (!activeTask) return;
+    setStepSuggestions(prev => ({ ...prev, [stepId]: { text: "", loading: true } }));
+    try {
+      const response = await fetch("/api/stuck-helper", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskTitle: activeTask.title, taskDescription: activeTask.description, stepText })
+      });
+      const data = await response.json();
+      setStepSuggestions(prev => ({ ...prev, [stepId]: { text: data.suggestion || "Start by writing 3 bullet points about what you know.", loading: false } }));
+    } catch {
+      setStepSuggestions(prev => ({ ...prev, [stepId]: { text: "Take a deep breath, then write down the very first thing you need to do.", loading: false } }));
+    }
+  };
+
   const handleApproveAndSendComm = async () => {
     if (!activeTask || !communicationDraft) return;
-
-    // Extend the deadline by 2 hours in the database
     const currentDeadline = new Date(activeTask.deadline);
     currentDeadline.setHours(currentDeadline.getHours() + 2);
     activeTask.deadline = currentDeadline.toISOString();
     activeTask.recalibrated = true;
     activeTask.updatedAt = new Date().toISOString();
     await saveTask(activeTask);
-
-    // Save message to log list
     await saveCommunicationLog(activeTask.id, activeTask.title, stakeholder, communicationDraft);
-
-    // Also adjust its current timeblock
     const bs = await getTimeBlocks();
     const activeBlock = bs.find(b => b.taskId === activeTask.id);
     if (activeBlock) {
@@ -268,21 +337,21 @@ export default function FocusMode() {
       activeBlock.endTime = currentEnd.toISOString();
       await saveTimeBlocks(bs);
     }
-
     setIsCommSent(true);
-    setTimeout(() => {
-      setCommunicationDraft(null);
-      setIsCommSent(false);
-      setRecalibrationAlert(null);
-    }, 2500);
+    setTimeout(() => { setCommunicationDraft(null); setIsCommSent(false); setRunningBehind(null); }, 2500);
   };
+
+  const formattedSeconds = timerSeconds.toString().padStart(2, "0");
+  const formattedMinutes = timerMinutes.toString().padStart(2, "0");
+  const completedSteps = subSteps.filter(s => s.completed).length;
+  const progressPct = subSteps.length > 0 ? Math.round((completedSteps / subSteps.length) * 100) : 0;
 
   if (loadingUser) {
     return (
-      <div className="flex-1 bg-slate-950 flex items-center justify-center text-slate-400 font-sans">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span>
-          <span>Authenticating Session...</span>
+      <div className="flex-1 bg-background flex items-center justify-center text-muted-foreground font-sans">
+        <div className="flex items-center gap-3">
+          <span className="w-3 h-3 rounded-full bg-primary animate-ping"></span>
+          <span className="text-sm font-medium">Loading...</span>
         </div>
       </div>
     );
@@ -290,120 +359,188 @@ export default function FocusMode() {
 
   if (!activeTask) {
     return (
-      <div className="flex-1 bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-8 font-sans">
+      <div className="flex-1 bg-background text-foreground flex flex-col items-center justify-center p-8 font-sans">
         <div className="max-w-md w-full text-center space-y-6">
-          <div className="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-indigo-400">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <h2 className="text-xl font-semibold">No Active Task Available</h2>
-          <p className="text-sm text-slate-400">
-            Before entering Focus Mode, go to the dashboard and ensure you have triaged tasks scheduled for today.
+          <div className="text-6xl">🎯</div>
+          <h2 className="text-xl font-bold tracking-tight">Nothing to Focus On Yet</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            You don't have any tasks to focus on. Go back to your dashboard and either type out everything that's on your mind, or add a task manually.
           </p>
           <a
             href="/dashboard"
-            className="inline-block bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-6 py-3 rounded-xl transition-all"
+            className="inline-block bg-primary hover:bg-primary/95 text-primary-foreground text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-md active:scale-95"
           >
-            ← Back to Dashboard
+            ← Back to My Tasks
           </a>
         </div>
       </div>
     );
   }
 
-  const formattedSeconds = timerSeconds.toString().padStart(2, "0");
-  const formattedMinutes = timerMinutes.toString().padStart(2, "0");
-
   return (
-    <div className="flex-1 bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="flex-1 bg-background text-foreground flex flex-col font-sans transition-colors duration-300">
       
+      {/* Encouragement Toast */}
+      {encouragement && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-white text-sm font-bold px-6 py-3 rounded-2xl shadow-xl animate-bounce pointer-events-none">
+          {encouragement}
+        </div>
+      )}
+
+      {/* Check-in Toast */}
+      {showCheckin && (
+        <div className="fixed top-6 right-6 z-50 bg-card border border-border rounded-2xl p-5 shadow-2xl max-w-xs animate-fade-in">
+          <p className="text-sm font-bold text-foreground mb-1">💬 How's it going?</p>
+          <p className="text-xs text-muted-foreground mb-3">Still on track with your task?</p>
+          <div className="flex gap-2">
+            <button onClick={() => setShowCheckin(false)} className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-bold py-2 rounded-xl transition-all">
+              ✅ Yes, going well!
+            </button>
+            <button onClick={() => { setShowCheckin(false); handleGenerateCrisisCommunication(); }} className="flex-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/25 text-xs font-bold py-2 rounded-xl transition-all">
+              😅 I need help
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="border-b border-slate-900 bg-slate-950/80 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-30">
-        <a href="/dashboard" className="text-slate-400 hover:text-slate-200 text-xs font-semibold flex items-center gap-1">
-          ← Back to Dashboard
+      <header className="border-b border-border bg-background/80 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+        <a href="/dashboard" className="text-muted-foreground hover:text-foreground text-xs font-semibold flex items-center gap-1 transition-colors">
+          ← Back to My Tasks
         </a>
-        <div className="text-xs font-semibold bg-indigo-950 border border-indigo-900/60 text-indigo-400 px-3 py-1 rounded-full flex items-center gap-1 animate-pulse">
-          🎯 FOCUS MODE ENABLED
+        <div className="flex items-center gap-3">
+          {/* Ambient Sound Selector */}
+          <div className="hidden sm:flex items-center gap-2 bg-muted/40 border border-border px-3 py-1.5 rounded-xl">
+            <span className="text-[10px] text-muted-foreground font-semibold">🎵 Sound:</span>
+            {(["none", "rain", "cafe", "forest"] as SoundType[]).map(s => (
+              <button
+                key={s}
+                onClick={() => setSoundType(s)}
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition-all ${soundType === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {s === "none" ? "Off" : s === "rain" ? "🌧️ Rain" : s === "cafe" ? "☕ Café" : "🌿 Forest"}
+              </button>
+            ))}
+          </div>
+          <div className="text-[10px] font-semibold bg-primary/10 border border-primary/25 text-primary px-3 py-1 rounded-full flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+            Focus Mode — You're Doing Great!
+          </div>
         </div>
       </header>
 
-      {/* Focus Panel Grid */}
-      <main className="max-w-7xl mx-auto w-full px-6 grid grid-cols-1 lg:grid-cols-5 gap-8 mt-8 flex-1 pb-16">
+      {/* Main Grid */}
+      <main className="max-w-7xl mx-auto w-full px-6 grid grid-cols-1 lg:grid-cols-5 gap-8 mt-8 flex-1 pb-16 text-left">
         
-        {/* Left Column (3/5): Pomodoro, Substeps, and Scaffolding */}
+        {/* Left: Timer + Steps */}
         <div className="lg:col-span-3 space-y-8 flex flex-col">
           
-          {/* Main Focus Card with Pomodoro */}
-          <section className="bg-slate-900/40 border border-slate-900 rounded-3xl p-8 backdrop-blur-sm shadow-xl flex flex-col items-center justify-center space-y-6">
-            <span className="text-[10px] text-indigo-400 font-semibold tracking-widest uppercase">
-              Current Micro-Task
+          {/* Focus Timer Card */}
+          <section className="bg-card border border-border rounded-[2rem] p-8 shadow-xl flex flex-col items-center justify-center space-y-6">
+            <span className="text-[10px] text-primary font-bold tracking-widest uppercase">
+              Right Now, Focus On:
             </span>
-            <h2 className="text-2xl font-semibold text-slate-100 text-center max-w-xl">
+            <h2 className="text-2xl font-bold text-foreground text-center max-w-xl tracking-tight">
               {activeTask.title}
             </h2>
-            <p className="text-xs text-slate-400 text-center max-w-lg leading-relaxed">
-              {activeTask.description}
-            </p>
+            {activeTask.description && (
+              <p className="text-xs text-muted-foreground text-center max-w-lg leading-relaxed">
+                {activeTask.description}
+              </p>
+            )}
 
-            {/* Pomodoro Clock UI */}
-            <div className="relative w-48 h-48 rounded-full border border-slate-800 flex flex-col items-center justify-center bg-slate-950 shadow-2xl relative overflow-hidden">
-              <span className="text-[10px] font-semibold text-slate-500 tracking-wider mb-1">
-                {timerMode.toUpperCase()}
-              </span>
-              <span className="text-4xl font-semibold tracking-tight tabular-nums text-white">
-                {formattedMinutes}:{formattedSeconds}
-              </span>
-              <span className="text-[9px] text-slate-600 mt-1">
-                Spent: {Math.floor(elapsedSeconds / 60)}m {elapsedSeconds % 60}s
-              </span>
+            {/* Timer Ring */}
+            <div className="relative w-52 h-52">
+              <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="4" className="text-muted/30" />
+                <circle
+                  cx="50" cy="50" r="45" fill="none"
+                  stroke="currentColor" strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 45}`}
+                  strokeDashoffset={`${2 * Math.PI * 45 * (1 - (timerMinutes * 60 + timerSeconds) / ((timerMode === "focus" ? 25 : 5) * 60))}`}
+                  className={timerMode === "focus" ? "text-primary transition-all duration-1000" : "text-emerald-500 transition-all duration-1000"}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-[10px] font-bold text-muted-foreground tracking-wider uppercase">
+                  {timerMode === "focus" ? "🎯 Focus Time" : "☕ Break Time"}
+                </span>
+                <span className="text-4xl font-black tracking-tight tabular-nums text-foreground mt-1">
+                  {formattedMinutes}:{formattedSeconds}
+                </span>
+                <span className="text-[9px] text-muted-foreground/60 mt-1">
+                  {Math.floor(elapsedSeconds / 60)}m {elapsedSeconds % 60}s spent
+                </span>
+              </div>
             </div>
 
             {/* Controls */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap justify-center items-center gap-3">
               <button
                 onClick={handleStartPause}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-6 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-600/10 active:scale-95"
+                className={`text-sm font-bold px-7 py-3 rounded-xl transition-all shadow-md active:scale-95 ${
+                  isTimerRunning
+                    ? "bg-amber-500 hover:bg-amber-400 text-white shadow-amber-500/20"
+                    : "bg-primary hover:bg-primary/95 text-primary-foreground shadow-primary/20"
+                }`}
               >
-                {isTimerRunning ? "⏸️ Pause" : "▶️ Start Focus"}
+                {isTimerRunning ? "⏸️ Pause" : "▶️ Start Focusing"}
               </button>
               <button
                 onClick={handleReset}
-                className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all active:scale-95"
+                className="bg-muted hover:bg-muted-foreground/15 border border-border text-foreground text-xs font-semibold px-4 py-3 rounded-xl transition-all active:scale-95"
               >
                 🔄 Reset
               </button>
               <button
                 onClick={handleCompleteActiveTask}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-95 shadow-md shadow-emerald-600/10"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all active:scale-95 shadow-md shadow-emerald-600/10"
               >
-                ✓ Complete Task
+                ✓ I'm Done!
               </button>
             </div>
+
+            {/* Progress bar */}
+            {progressPct > 0 && (
+              <div className="w-full space-y-1.5">
+                <div className="flex justify-between text-[10px] text-muted-foreground font-semibold">
+                  <span>Task Progress</span>
+                  <span>{progressPct}% done</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <div
+                    className="h-2 rounded-full bg-secondary transition-all duration-500"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </section>
 
-          {/* Sub-steps Checklist with Velocity Calibration */}
-          <section className="bg-slate-900/20 border border-slate-900 rounded-2xl p-6 space-y-4">
-            <h3 className="text-xs font-semibold tracking-wider text-indigo-400 uppercase flex items-center gap-2">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Estimated Sub-steps checklist
-            </h3>
+          {/* Steps Checklist */}
+          <section className="bg-card border border-border rounded-[2rem] p-8 space-y-4 shadow-sm">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/15 flex items-center justify-center text-base shrink-0">✅</div>
+              <div>
+                <h3 className="text-sm font-bold text-foreground">Steps to Get It Done</h3>
+                <p className="text-[10px] text-muted-foreground">{completedSteps} of {subSteps.length} completed</p>
+              </div>
+            </div>
 
-            {/* Velocity calibration warning alert banner */}
-            {recalibrationAlert && (
-              <div className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs rounded-xl p-4 animate-pulse flex flex-col gap-2">
-                <span className="font-semibold">⚡ Live Recalibration Active</span>
-                <p className="text-yellow-300/80 leading-normal">{recalibrationAlert.message}</p>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleGenerateCrisisCommunication()} 
-                    className="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 text-[10px] font-semibold px-3 py-1 rounded"
-                  >
-                    Generate Extension Draft (Stakeholder Shield)
-                  </button>
-                </div>
+            {/* Running behind alert */}
+            {runningBehind && (
+              <div className="bg-amber-500/10 border border-amber-500/35 text-amber-600 dark:text-amber-400 text-xs rounded-xl p-4 flex flex-col gap-2.5">
+                <span className="font-bold text-sm">⏱️ You Might Be Running a Bit Behind</span>
+                <p className="text-amber-700 dark:text-amber-300 leading-normal">
+                  Based on your pace, this task might take about <strong>{runningBehind.shiftMinutes} extra minutes</strong>. It happens! You can write a quick delay message below.
+                </p>
+                <button 
+                  onClick={() => handleGenerateCrisisCommunication()} 
+                  className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 dark:text-amber-200 text-[10px] font-bold px-3 py-1.5 rounded-lg w-fit cursor-pointer"
+                >
+                  ✍️ Write a Delay Message for Me
+                </button>
               </div>
             )}
 
@@ -411,160 +548,169 @@ export default function FocusMode() {
               {subSteps.map((step) => (
                 <div
                   key={step.id}
-                  onClick={() => handleToggleSubStep(step.id)}
-                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                    step.completed
-                      ? "bg-slate-950/30 border-slate-950 opacity-55"
-                      : "bg-slate-900/30 border-slate-900 hover:border-slate-800"
-                  }`}
+                  className="flex flex-col gap-2 p-3.5 rounded-xl border bg-muted/10 border-border hover:border-border/80 transition-all"
                 >
-                  <div className={`w-4 h-4 rounded border flex items-center justify-center ${
-                    step.completed ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-700 bg-slate-950"
-                  }`}>
-                    {step.completed && (
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
+                  <div
+                    onClick={() => handleToggleSubStep(step.id)}
+                    className="flex items-center gap-3 cursor-pointer select-none w-full"
+                  >
+                    <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${
+                      step.completed ? "bg-emerald-500 border-emerald-500 text-white" : "border-border bg-background hover:border-emerald-500/50"
+                    }`}>
+                      {step.completed && (
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className={`text-sm flex-1 ${step.completed ? "line-through text-muted-foreground" : "text-foreground font-medium"}`}>
+                      {step.text}
+                    </span>
+                    {!step.completed && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleStuckClick(step.id, step.text); }}
+                        className="ml-auto text-[9px] bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold px-2.5 py-1 rounded-lg hover:bg-indigo-500/20 transition-all cursor-pointer shrink-0"
+                      >
+                        {stepSuggestions[step.id]?.loading ? "Thinking..." : "🤔 Help Me With This"}
+                      </button>
                     )}
                   </div>
-                  <span className={`text-xs ${step.completed ? "line-through text-slate-500 font-normal" : "text-slate-300"}`}>
-                    {step.text}
-                  </span>
+                  {stepSuggestions[step.id]?.text && (
+                    <div className="text-[11px] bg-indigo-500/5 border border-indigo-500/10 text-indigo-600 dark:text-indigo-300 p-3 rounded-xl ml-8">
+                      💡 <strong>AI Coach says:</strong> {stepSuggestions[step.id].text}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </section>
-
         </div>
 
-        {/* Right Column (2/5): Head Start Pre-Research Scaffold & Stakeholder Shield */}
+        {/* Right: Research Notes + Delay Message */}
         <div className="lg:col-span-2 space-y-8 flex flex-col">
           
-          {/* Head Start Scaffold Assets Panel */}
-          <section className="bg-slate-900/30 border border-slate-900 rounded-2xl p-6 backdrop-blur-sm shadow-xl flex-1 flex flex-col">
-            <div className="flex items-center justify-between border-b border-slate-900 pb-3 mb-4">
-              <h3 className="text-xs font-semibold tracking-wider text-indigo-400 uppercase flex items-center gap-2">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-                Autonomous Scaffolding Assets
-              </h3>
-              <span className="text-[9px] bg-indigo-950 border border-indigo-900/60 text-indigo-400 font-semibold px-2 py-0.5 rounded">
-                🧠 Gemini 1.5 Pro
-              </span>
+          {/* AI Research Notes */}
+          <section className="bg-card border border-border rounded-[2rem] p-8 shadow-xl flex-1 flex flex-col">
+            <div className="flex items-center gap-3 border-b border-border pb-3.5 mb-4">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center text-base shrink-0">🧠</div>
+              <div>
+                <h3 className="text-sm font-bold text-foreground">AI Research Notes</h3>
+                <p className="text-[9px] text-muted-foreground">Pre-prepared to help you get started faster</p>
+              </div>
             </div>
 
             {activeTask.scaffolding?.status === "completed" ? (
-              <div className="space-y-5 text-xs">
+              <div className="space-y-5 text-xs text-left">
                 <div className="space-y-2">
-                  <span className="font-semibold text-indigo-300">Target Audiences:</span>
-                  <ul className="list-disc pl-4 space-y-1 text-slate-400 text-[11px] leading-relaxed">
+                  <span className="font-bold text-foreground flex items-center gap-1.5">👥 Who this is for:</span>
+                  <ul className="space-y-1 text-muted-foreground leading-relaxed pl-2">
                     {activeTask.scaffolding.targetAudiences.map((aud, i) => (
-                      <li key={i}>{aud}</li>
+                      <li key={i} className="flex items-start gap-1.5"><span className="text-primary mt-0.5">•</span>{aud}</li>
                     ))}
                   </ul>
                 </div>
-
                 <div className="space-y-2">
-                  <span className="font-semibold text-indigo-300">Brainstorm Hooks & Angles:</span>
+                  <span className="font-bold text-foreground flex items-center gap-1.5">💡 Ideas to get started:</span>
                   <div className="space-y-1.5">
                     {activeTask.scaffolding.headlineAngles.map((ang, i) => (
-                      <div key={i} className="p-2 rounded bg-slate-950 border border-slate-900/80 font-mono text-[10px] text-indigo-200">
+                      <div key={i} className="p-2.5 rounded-xl bg-indigo-500/5 border border-indigo-500/10 font-medium text-foreground">
                         {ang}
                       </div>
                     ))}
                   </div>
                 </div>
-
                 <div className="space-y-2">
-                  <span className="font-semibold text-indigo-300">Starting Outline Template:</span>
-                  <ol className="list-decimal pl-4 space-y-1 text-slate-400 text-[11px]">
+                  <span className="font-bold text-foreground flex items-center gap-1.5">📋 A starting structure:</span>
+                  <ol className="space-y-1 text-muted-foreground pl-2">
                     {activeTask.scaffolding.structuralTemplates.map((temp, i) => (
-                      <li key={i}>{temp}</li>
+                      <li key={i} className="flex items-start gap-1.5"><span className="text-primary font-bold shrink-0">{i+1}.</span>{temp}</li>
                     ))}
                   </ol>
                 </div>
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center py-12 text-center space-y-3">
-                <span className="text-2xl">🧠</span>
-                <p className="text-slate-500 text-xs max-w-[200px]">
-                  Scaffolding brainstorm assets have not been generated yet. Go back to the dashboard and trigger "Auto Pre-Research".
+                <span className="text-4xl">🔍</span>
+                <p className="text-muted-foreground text-sm max-w-[200px] leading-relaxed font-medium">
+                  No research notes yet.
                 </p>
+                <p className="text-xs text-muted-foreground/70 max-w-[200px] leading-relaxed">
+                  Go back and click "Get a Head Start" on this task to have AI prepare notes for you.
+                </p>
+                <a href="/dashboard" className="text-xs text-primary font-semibold hover:underline">← Get Notes for This Task</a>
               </div>
             )}
           </section>
 
-          {/* Stakeholder Shield (Crisis Communication Drawer) */}
-          <section className="bg-slate-900/30 border border-slate-900 rounded-2xl p-6 backdrop-blur-sm shadow-xl">
-            <h3 className="text-xs font-semibold tracking-wider text-rose-400 uppercase mb-3 flex items-center gap-2">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              Stakeholder Shield Protocol
-            </h3>
+          {/* Delay Message Writer */}
+          <section className="bg-card border border-border rounded-[2rem] p-8 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-xl bg-rose-500/15 flex items-center justify-center text-base shrink-0">🛡️</div>
+              <div>
+                <h3 className="text-sm font-bold text-foreground">Need to Apologize for a Delay?</h3>
+                <p className="text-[10px] text-muted-foreground">AI will write a professional message for you in seconds</p>
+              </div>
+            </div>
             
             <div className="space-y-4">
-              <p className="text-[10px] text-slate-500 leading-normal">
-                If velocity recalibration indicates you will miss a deadline, the AI will draft a highly professional, contextual message to shield you from stakeholder anxiety.
-              </p>
-
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <select
                   value={stakeholder}
                   onChange={(e) => setStakeholder(e.target.value)}
-                  className="bg-slate-950 border border-slate-800/80 rounded-lg p-2 text-xs text-slate-300 focus:outline-none flex-1"
+                  className="bg-background border border-border rounded-xl p-2.5 text-xs text-foreground focus:outline-none focus:border-primary flex-1 font-semibold cursor-pointer"
                 >
                   <option>Client</option>
                   <option>Project Manager</option>
                   <option>Professor</option>
                   <option>Teammate</option>
                 </select>
+
+                <select
+                  value={disposition}
+                  onChange={(e) => setDisposition(e.target.value)}
+                  className="bg-background border border-border rounded-xl p-2.5 text-xs text-foreground focus:outline-none focus:border-primary flex-1 font-semibold cursor-pointer"
+                >
+                  <option value="Critical & Strict">Formal & Professional</option>
+                  <option value="Chill & Collaborative">Casual & Friendly</option>
+                  <option value="Busy Executive">Short & Direct</option>
+                </select>
                 
                 <button
                   onClick={handleGenerateCrisisCommunication}
                   disabled={isGeneratingComm}
-                  className="bg-rose-950/70 hover:bg-rose-900/70 border border-rose-800 text-rose-300 text-xs font-semibold px-4 py-2 rounded-lg active:scale-95 transition-all flex items-center gap-1"
+                  className="bg-rose-600 hover:bg-rose-500 disabled:bg-rose-500/50 text-white text-xs font-bold px-4 py-2.5 rounded-xl active:scale-[0.97] transition-all flex items-center justify-center gap-1 shadow-md cursor-pointer shrink-0"
                 >
-                  {isGeneratingComm ? "Generating..." : "Generate Draft"}
+                  {isGeneratingComm ? "Writing..." : "✍️ Write it"}
                 </button>
               </div>
 
-              {/* Draft Output Modal/Viewer */}
               {communicationDraft && (
-                <div className="bg-slate-950 border border-slate-900 rounded-xl p-4 mt-3 space-y-3 animate-fade-in">
-                  <div className="flex justify-between items-center pb-2 border-b border-slate-900 text-[9px] text-slate-500">
-                    <span>Draft generated via {commModel}</span>
-                    <button 
-                      onClick={() => setCommunicationDraft(null)} 
-                      className="text-slate-600 hover:text-slate-400"
-                    >
-                      ✕
-                    </button>
+                <div className="bg-muted/30 border border-border rounded-2xl p-4 space-y-3 animate-fade-in text-left">
+                  <div className="flex justify-between items-center pb-2 border-b border-border">
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">✅ AI wrote this for you:</span>
+                    <button onClick={() => setCommunicationDraft(null)} className="text-muted-foreground hover:text-foreground text-xs">✕</button>
                   </div>
-                  <pre className="font-sans text-[10px] text-slate-400 leading-relaxed overflow-x-auto whitespace-pre-wrap max-h-[180px] overflow-y-auto">
+                  <pre className="font-sans text-[11px] text-foreground leading-relaxed overflow-x-auto whitespace-pre-wrap max-h-[180px] overflow-y-auto">
                     {communicationDraft}
                   </pre>
                   
                   {isCommSent ? (
-                    <div className="bg-emerald-950 border border-emerald-500/40 text-emerald-300 text-xs py-2 px-3 rounded-lg text-center font-semibold animate-pulse">
-                      ✓ Message Transmitted! Calendar Shifted +2h in DB.
+                    <div className="bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs py-2 px-3 rounded-lg text-center font-bold">
+                      ✅ Saved! Your deadline was extended by 2 hours.
                     </div>
                   ) : (
                     <button
                       onClick={handleApproveAndSendComm}
-                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-2 rounded-lg active:scale-95 transition-all shadow-md shadow-emerald-600/10 flex items-center justify-center gap-1"
+                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 rounded-xl active:scale-95 transition-all shadow-md flex items-center justify-center gap-1 cursor-pointer"
                     >
-                      <span>Approve and Send Extension Request via API</span>
+                      ✓ Looks Good — Save & Extend My Deadline
                     </button>
                   )}
                 </div>
               )}
             </div>
           </section>
-
         </div>
-
       </main>
     </div>
   );

@@ -396,12 +396,13 @@ export async function runAutoNegotiation(
 export async function runCrisisCommunication(
   taskTitle: string,
   stakeholderType: string,
-  taskDescription: string
+  taskDescription: string,
+  disposition: string = "Critical & Strict"
 ): Promise<{
   draft: string;
   modelUsed: string;
 }> {
-  addSystemLog(`Drafting extension request draft (Stakeholder Shield) to role: "${stakeholderType}".`);
+  addSystemLog(`Drafting extension request draft (Stakeholder Shield) to role: "${stakeholderType}" with mood "${disposition}".`);
   
   if (!ai) {
     await delay(1200);
@@ -419,11 +420,15 @@ export async function runCrisisCommunication(
     Task Title: "${taskTitle}"
     Task Description: "${taskDescription}"
     Stakeholder Role: "${stakeholderType}" (e.g. Client, Manager, Professor, Teammate)
+    Stakeholder Personality/Disposition: "${disposition}" (e.g. "Critical & Strict", "Chill & Collaborative", "Busy Executive")
     
-    Draft a highly professional, polite, and reassuring update explaining the delay.
+    Draft a highly professional and reassuring update explaining the delay.
+    - Tailor the tone to their personality:
+      * "Critical & Strict": highly structured, very respectful, detail-oriented, with a precise recovery plan.
+      * "Chill & Collaborative": warm, conversational, collaborative, proposing to jump on a quick call if needed.
+      * "Busy Executive": extremely concise, bulleted format, action-oriented, zero fluff.
     - Take accountability.
-    - Briefly and professionally mention that integration details are being polished to ensure high quality (keep the explanation generic but realistic).
-    - Propose a realistic delay of 2-3 hours or a minor shift to the deadline.
+    - Propose a realistic delay of 2-3 hours.
     - Make it easy for the stakeholder to say yes.
     Keep it concise and ready to send. DO NOT include placeholders like [Your Name] or [Insert Date]; write the message in a complete, ready-to-copy state.`;
 

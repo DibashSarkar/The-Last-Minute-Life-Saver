@@ -28,9 +28,9 @@ export default function AdminTokensPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 font-sans">
+      <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground font-sans">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span>
+          <span className="w-2 h-2 rounded-full bg-primary animate-ping"></span>
           <span>Accessing Administration Console...</span>
         </div>
       </div>
@@ -38,86 +38,86 @@ export default function AdminTokensPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans pb-16">
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans pb-16 transition-colors duration-300">
       
       {/* Header */}
-      <header className="border-b border-slate-900 bg-slate-950/80 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-30">
-        <a href="/dashboard" className="text-slate-400 hover:text-slate-200 text-xs font-semibold flex items-center gap-1">
+      <header className="border-b border-border bg-background/80 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+        <a href="/dashboard" className="text-muted-foreground hover:text-foreground text-xs font-semibold flex items-center gap-1 transition-colors">
           ← Exit Admin Area
         </a>
-        <h1 className="text-sm font-semibold tracking-wide text-indigo-400 uppercase">
+        <h1 className="text-xs font-semibold tracking-wider text-primary uppercase">
           LLM Consumption Diagnostics
         </h1>
       </header>
 
       {/* Main Layout */}
-      <div className="max-w-5xl mx-auto w-full px-6 grid grid-cols-1 md:grid-cols-4 gap-8 mt-8 flex-1">
+      <div className="max-w-5xl mx-auto w-full px-6 grid grid-cols-1 md:grid-cols-4 gap-8 mt-8 flex-1 text-left">
         
         {/* Sidebar Nav */}
-        <aside className="md:col-span-1 space-y-2 text-xs font-semibold">
-          <span className="text-[10px] text-slate-500 uppercase tracking-widest block pb-1">Cockpit Nodes</span>
-          <a href="/admin" className="block p-3 rounded-lg bg-slate-900/35 border border-slate-900 text-slate-400 hover:text-slate-200 hover:border-slate-800">
+        <aside className="md:col-span-1 space-y-2 text-xs font-semibold flex flex-col">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-widest block pb-1">Cockpit Nodes</span>
+          <a href="/admin" className="p-3.5 rounded-xl bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-all font-semibold">
             Overview Stats
           </a>
-          <a href="/admin/users" className="block p-3 rounded-lg bg-slate-900/35 border border-slate-900 text-slate-400 hover:text-slate-200 hover:border-slate-800">
+          <a href="/admin/users" className="p-3.5 rounded-xl bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-all font-semibold">
             Users Cohort Table
           </a>
-          <a href="/admin/tokens" className="block p-3 rounded-lg bg-indigo-950/20 text-indigo-300 border border-indigo-900/40">
+          <a href="/admin/tokens" className="p-3.5 rounded-xl bg-primary/10 text-primary border border-primary/20 transition-all font-semibold">
             Token Expenditures
           </a>
-          <a href="/admin/logs" className="block p-3 rounded-lg bg-slate-900/35 border border-slate-900 text-slate-400 hover:text-slate-200 hover:border-slate-800">
+          <a href="/admin/logs" className="p-3.5 rounded-xl bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-all font-semibold">
             System Cron Logs
           </a>
         </aside>
 
         {/* Content Node */}
         <main className="md:col-span-3 space-y-6">
-          <div className="space-y-1">
-            <h2 className="text-sm font-semibold tracking-wide text-indigo-400 uppercase">LLM Consumption Diagnostics</h2>
-            <p className="text-[10px] text-slate-500">Comparative token metrics for routing flows (Gemini Flash vs Pro).</p>
+          <div className="space-y-1.5">
+            <h2 className="text-xs font-semibold tracking-widest text-primary uppercase">LLM Consumption Diagnostics</h2>
+            <p className="text-[10px] text-muted-foreground">Comparative token metrics for routing flows (Gemini Flash vs Pro).</p>
           </div>
 
           {/* Cards distribution details */}
           <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
-            <div className="border border-slate-900 bg-slate-900/10 rounded-xl p-5 space-y-1.5">
-              <div className="flex justify-between items-center text-[10px] font-semibold text-yellow-400">
+            <div className="border border-border bg-card rounded-2xl p-6 space-y-1.5 shadow-sm">
+              <div className="flex justify-between items-center text-[10px] font-semibold text-amber-600 dark:text-amber-400">
                 <span>⚡ GEMINI 1.5 FLASH</span>
                 <span>{flashPercentage.toFixed(0)}%</span>
               </div>
-              <div className="text-2xl font-semibold text-white">{stats.flashCount.toLocaleString()} <span className="text-[10px] text-slate-500 font-normal">tokens</span></div>
-              <p className="text-[10px] text-slate-500 leading-normal">Used in raw text parsing triages, velocity re-schedulers, and timeline negotiators.</p>
+              <div className="text-2xl font-semibold text-foreground">{stats.flashCount.toLocaleString()} <span className="text-[10px] text-muted-foreground font-normal">tokens</span></div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">Used in raw text parsing triages, velocity re-schedulers, and timeline negotiators.</p>
             </div>
 
-            <div className="border border-slate-900 bg-slate-900/10 rounded-xl p-5 space-y-1.5">
-              <div className="flex justify-between items-center text-[10px] font-semibold text-indigo-300">
+            <div className="border border-border bg-card rounded-2xl p-6 space-y-1.5 shadow-sm">
+              <div className="flex justify-between items-center text-[10px] font-semibold text-primary">
                 <span>🧠 GEMINI 1.5 PRO</span>
                 <span>{proPercentage.toFixed(0)}%</span>
               </div>
-              <div className="text-2xl font-semibold text-white">{stats.proCount.toLocaleString()} <span className="text-[10px] text-slate-500 font-normal">tokens</span></div>
-              <p className="text-[10px] text-slate-500 leading-normal">Used in deep pre-research scaffold generation and Stakeholder Shield delay copy messages.</p>
+              <div className="text-2xl font-semibold text-foreground">{stats.proCount.toLocaleString()} <span className="text-[10px] text-muted-foreground font-normal">tokens</span></div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">Used in deep pre-research scaffold generation and Stakeholder Shield delay copy messages.</p>
             </div>
 
           </section>
 
           {/* Graphical token expenditure progress bar */}
-          <section className="bg-slate-900/20 border border-slate-900 rounded-2xl p-6 space-y-4 text-xs">
-            <span className="font-semibold text-slate-300">Token Allocation Ratio</span>
-            <div className="w-full bg-slate-950 rounded-full h-4 overflow-hidden flex">
+          <section className="bg-card border border-border rounded-[2rem] p-8 space-y-4 text-xs shadow-xl">
+            <span className="font-semibold text-foreground">Token Allocation Ratio</span>
+            <div className="w-full bg-muted rounded-full h-4 overflow-hidden flex">
               <div 
-                className="bg-yellow-500 h-full transition-all duration-500"
+                className="bg-amber-500 h-full transition-all duration-500"
                 style={{ width: `${flashPercentage}%` }}
                 title={`Flash: ${flashPercentage.toFixed(1)}%`}
               ></div>
               <div 
-                className="bg-indigo-500 h-full transition-all duration-500"
+                className="bg-primary h-full transition-all duration-500"
                 style={{ width: `${proPercentage}%` }}
                 title={`Pro: ${proPercentage.toFixed(1)}%`}
               ></div>
             </div>
-            <div className="flex justify-between items-center text-[10px] text-slate-500">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-yellow-500"></span> Gemini 1.5 Flash ({stats.flashCount})</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-indigo-500"></span> Gemini 1.5 Pro ({stats.proCount})</span>
+            <div className="flex justify-between items-center text-[10px] text-muted-foreground font-medium pt-1.5">
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-amber-500"></span> Gemini 1.5 Flash ({stats.flashCount})</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-primary"></span> Gemini 1.5 Pro ({stats.proCount})</span>
             </div>
           </section>
 

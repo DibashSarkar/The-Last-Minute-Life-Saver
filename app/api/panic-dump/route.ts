@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
 import { runPanicDump } from "@/lib/gemini";
 import { saveTask, Task } from "@/lib/firebase";
+import { verifyAuthToken, unauthorizedResponse } from "@/lib/firebase-admin";
 
 export async function POST(request: Request) {
+  // 1. Verify auth
+  const uid = await verifyAuthToken(request);
+  if (!uid) return unauthorizedResponse();
+
+  // 2. Validate Content-Type
+  if (!request.headers.get("content-type")?.includes("application/json")) {
+    return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
+  }
+
   try {
     const { text } = await request.json();
 

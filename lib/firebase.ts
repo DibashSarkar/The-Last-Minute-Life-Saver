@@ -1,28 +1,43 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { 
-  getFirestore, 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  setDoc, 
-  deleteDoc
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  deleteDoc,
+  Firestore,
 } from "firebase/firestore";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  updateProfile,
+  User,
+  Auth,
+} from "firebase/auth";
 
-// Task Interface
+// ─── Interfaces ───────────────────────────────────────────────────────────────
+
 export interface Task {
   id: string;
   title: string;
   description: string;
-  importance: boolean; // Eisenhower Quadrant: Important
-  urgency: boolean;    // Eisenhower Quadrant: Urgent
+  importance: boolean;
+  urgency: boolean;
   priorityScore: number;
   status: "pending" | "in_progress" | "completed";
-  estimatedDuration: number; // in minutes
-  actualDuration: number;    // in minutes
-  deadline: string;          // ISO String
+  estimatedDuration: number;
+  actualDuration: number;
+  deadline: string;
   energyRequired: "high" | "medium" | "low";
-  dependencies: string[];    // Array of Task IDs
+  dependencies: string[];
   scaffolding?: {
     targetAudiences: string[];
     headlineAngles: string[];
@@ -35,31 +50,28 @@ export interface Task {
   updatedAt: string;
 }
 
-// Calendar Time Block Interface
 export interface TimeBlock {
   id: string;
   taskId: string | null;
   title: string;
-  startTime: string; // ISO String
-  endTime: string;   // ISO String
+  startTime: string;
+  endTime: string;
   isCompleted: boolean;
-  modelUsed?: string; // Flash / Pro badge tracking
+  modelUsed?: string;
 }
 
-// User Settings Interface
 export interface UserSettings {
   workingHours: {
-    start: string; // e.g., "09:00"
-    end: string;   // e.g., "17:00"
+    start: string;
+    end: string;
   };
   currentEnergyState: "high" | "medium" | "low" | "overwhelmed";
   pomodoroConfig: {
-    focusDuration: number; // in minutes
-    breakDuration: number; // in minutes
+    focusDuration: number;
+    breakDuration: number;
   };
 }
 
-// Communication Log Interface
 export interface CommunicationLog {
   id: string;
   taskId: string;
@@ -69,453 +81,480 @@ export interface CommunicationLog {
   timestamp: string;
 }
 
-// User Profile Interface
 export interface UserProfile {
   uid: string;
   email: string;
   displayName?: string;
   createdAt: string;
   onboarded: boolean;
+  age?: number;
+  gender?: string;
 }
 
-// Firebase configuration using environment variables
+// ─── Firebase Initialization ──────────────────────────────────────────────────
+
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain:        process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId:         process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket:     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  appId:             process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Check if Firebase config is fully set up
-const isFirebaseConfigured = 
-  firebaseConfig.apiKey && 
-  firebaseConfig.projectId;
+const isFirebaseConfigured =
+  !!firebaseConfig.apiKey && !!firebaseConfig.projectId;
 
-let app;
-let db: any = null;
+let firebaseApp: FirebaseApp | null = null;
+export let db: Firestore | null = null;
+let auth: Auth | null = null;
 
-if (isFirebaseConfigured) {
+if (isFirebaseConfigured && typeof window !== "undefined") {
   try {
-    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-    db = getFirestore(app);
-  } catch (error) {
-    console.warn("Failed to initialize Firebase, falling back to Local Sandbox:", error);
+    firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    db   = getFirestore(firebaseApp);
+    auth = getAuth(firebaseApp);
+  } catch (err) {
+    console.error("Firebase init failed:", err);
   }
 }
 
-// Local Storage Sandbox / In-Memory Mock database fallback
-const IS_SERVER = typeof window === "undefined";
+export const isSandboxMode = () => !isFirebaseConfigured;
 
-// Global in-memory cache to sync server routes and client if running locally without Firebase
-const getGlobalCache = () => {
-  if (IS_SERVER) {
-    const globalRef = global as any;
-    if (!globalRef.__mockDb) {
-      globalRef.__mockDb = {
-        tasks: {},
-        timeBlocks: {},
-        settings: {
-          workingHours: { start: "09:00", end: "17:00" },
-          currentEnergyState: "high",
-          pomodoroConfig: { focusDuration: 25, breakDuration: 5 }
-        },
-        users: {
-          "user_guest": { uid: "user_guest", email: "guest@lifesaver.ai", displayName: "Demo User", createdAt: new Date().toISOString(), onboarded: true },
-          "user_alice": { uid: "user_alice", email: "alice.doe@startup.com", displayName: "Alice Doe", createdAt: new Date().toISOString(), onboarded: true }
-        },
-        currentUser: null,
-        tokenStats: { flashCount: 42, proCount: 18 },
-        systemLogs: [
-          { timestamp: new Date().toISOString(), message: "System initialized successfully." },
-          { timestamp: new Date().toISOString(), message: "Mock databases linked to runtime thread." }
-        ],
-        communicationLogs: {}
-      };
-    }
-    return globalRef.__mockDb;
-  }
-  return null;
-};
+// ─── Sandbox (localStorage) fallback ─────────────────────────────────────────
+// Used ONLY when Firebase env vars are not configured.
 
-// Local storage helpers
-const loadLocalData = (key: string, defaultValue: any) => {
-  if (IS_SERVER) {
-    const cache = getGlobalCache();
-    return cache ? cache[key] : defaultValue;
-  }
+const LS_PREFIX = "lifesaver_sandbox_";
+
+function lsGet<T>(key: string, def: T): T {
+  if (typeof window === "undefined") return def;
   try {
-    const item = localStorage.getItem(`life_saver_${key}`);
-    return item ? JSON.parse(item) : defaultValue;
-  } catch (e) {
-    return defaultValue;
-  }
-};
+    const raw = localStorage.getItem(LS_PREFIX + key);
+    return raw ? (JSON.parse(raw) as T) : def;
+  } catch { return def; }
+}
 
-const _saveLocalData = (key: string, data: any) => {
-  if (IS_SERVER) {
-    const cache = getGlobalCache();
-    if (cache) {
-      cache[key] = data;
+function lsSet(key: string, val: unknown): void {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem(LS_PREFIX + key, JSON.stringify(val)); } catch {}
+}
+
+// Derive sandbox user key
+function sandboxUid(): string {
+  const u = lsGet<UserProfile | null>("currentUser", null);
+  return u?.uid ?? "sandbox_guest";
+}
+
+// ─── Helper: get current Firebase user UID (throws in sandbox if not logged in) ──
+
+async function requireUid(): Promise<string> {
+  if (!auth) {
+    // Sandbox mode
+    const u = lsGet<UserProfile | null>("currentUser", null);
+    if (!u) throw new Error("Not authenticated");
+    return u.uid;
+  }
+  return new Promise((resolve, reject) => {
+    const unsub = onAuthStateChanged(auth!, (user) => {
+      unsub();
+      if (user) resolve(user.uid);
+      else reject(new Error("Not authenticated"));
+    });
+  });
+}
+
+// ─── AUTHENTICATION ───────────────────────────────────────────────────────────
+
+/**
+ * Sign in with email + password (real Firebase Auth).
+ * Falls back to sandbox localStorage login when Firebase not configured.
+ */
+export async function authLogin(email: string, password?: string): Promise<UserProfile> {
+  if (!auth) {
+    // Sandbox fallback
+    const users = lsGet<Record<string, UserProfile>>("users", {
+      sandbox_guest: {
+        uid: "sandbox_guest",
+        email: "guest@lifesaver.ai",
+        displayName: "Demo User",
+        createdAt: new Date().toISOString(),
+        onboarded: true,
+      },
+    });
+    let found = Object.values(users).find((u) => u.email === email) ?? null;
+    if (!found) {
+      found = {
+        uid: `user_${crypto.randomUUID().slice(0, 8)}`,
+        email,
+        displayName: email.split("@")[0],
+        createdAt: new Date().toISOString(),
+        onboarded: false,
+      };
+      users[found.uid] = found;
+      lsSet("users", users);
+    }
+    lsSet("currentUser", found);
+    return found;
+  }
+
+  const cred = await signInWithEmailAndPassword(auth, email, password ?? "");
+  const firebaseUser = cred.user;
+  return firebaseUserToProfile(firebaseUser);
+}
+
+/**
+ * Sign in with Google popup.
+ */
+export async function authLoginWithGoogle(): Promise<UserProfile> {
+  if (!auth) throw new Error("Firebase not configured. Use email login in sandbox mode.");
+  const provider = new GoogleAuthProvider();
+  provider.addScope("email");
+  provider.addScope("profile");
+  const cred = await signInWithPopup(auth, provider);
+  const firebaseUser = cred.user;
+  // Create or update user doc in Firestore
+  await ensureUserDocument(firebaseUser);
+  return firebaseUserToProfile(firebaseUser);
+}
+
+/**
+ * Register with email + password (real Firebase Auth).
+ */
+export async function authRegister(
+  email: string,
+  displayName?: string,
+  password?: string
+): Promise<UserProfile> {
+  if (!auth) {
+    // Sandbox fallback
+    const users = lsGet<Record<string, UserProfile>>("users", {});
+    const newUser: UserProfile = {
+      uid: `user_${crypto.randomUUID().slice(0, 8)}`,
+      email,
+      displayName: displayName || email.split("@")[0],
+      createdAt: new Date().toISOString(),
+      onboarded: false,
+    };
+    users[newUser.uid] = newUser;
+    lsSet("users", users);
+    lsSet("currentUser", newUser);
+    return newUser;
+  }
+
+  const cred = await createUserWithEmailAndPassword(auth, email, password ?? "");
+  if (displayName) {
+    await updateProfile(cred.user, { displayName });
+  }
+  await ensureUserDocument(cred.user, displayName);
+  return firebaseUserToProfile(cred.user);
+}
+
+/**
+ * Sign out.
+ */
+export async function authLogout(): Promise<void> {
+  if (!auth) {
+    lsSet("currentUser", null);
+    return;
+  }
+  await signOut(auth);
+}
+
+/**
+ * Send password reset email.
+ */
+export async function authSendPasswordReset(email: string): Promise<void> {
+  if (!auth) throw new Error("Firebase not configured");
+  await sendPasswordResetEmail(auth, email);
+}
+
+/**
+ * Get the currently logged-in user profile.
+ * Returns null if not logged in.
+ */
+export async function getCurrentUser(): Promise<UserProfile | null> {
+  if (!auth) {
+    return lsGet<UserProfile | null>("currentUser", null);
+  }
+  return new Promise((resolve) => {
+    const unsub = onAuthStateChanged(auth!, async (user) => {
+      unsub();
+      if (!user) { resolve(null); return; }
+      // Try to get extended profile from Firestore
+      try {
+        const snap = await getDoc(doc(db!, "users", user.uid));
+        if (snap.exists()) {
+          resolve(snap.data() as UserProfile);
+        } else {
+          await ensureUserDocument(user);
+          resolve(firebaseUserToProfile(user));
+        }
+      } catch {
+        resolve(firebaseUserToProfile(user));
+      }
+    });
+  });
+}
+
+/**
+ * Get raw Firebase Auth instance (for useEffect listeners in components).
+ */
+export function getFirebaseAuth(): Auth | null {
+  return auth;
+}
+
+// ─── Internal helpers ──────────────────────────────────────────────────────────
+
+function firebaseUserToProfile(user: User): UserProfile {
+  return {
+    uid: user.uid,
+    email: user.email ?? "",
+    displayName: user.displayName ?? user.email?.split("@")[0],
+    createdAt: user.metadata.creationTime ?? new Date().toISOString(),
+    onboarded: false,
+  };
+}
+
+async function ensureUserDocument(user: User, displayName?: string): Promise<void> {
+  if (!db) return;
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      uid: user.uid,
+      email: user.email ?? "",
+      displayName: displayName ?? user.displayName ?? user.email?.split("@")[0],
+      createdAt: new Date().toISOString(),
+      onboarded: false,
+    } as UserProfile);
+  }
+}
+
+// ─── USER PROFILE ─────────────────────────────────────────────────────────────
+
+export async function setOnboardingCompleted(uid: string, profileData?: Partial<UserProfile>): Promise<void> {
+  if (!db) {
+    const users = lsGet<Record<string, UserProfile>>("users", {});
+    if (users[uid]) {
+      users[uid].onboarded = true;
+      if (profileData) Object.assign(users[uid], profileData);
+      lsSet("users", users);
+    }
+    const cur = lsGet<UserProfile | null>("currentUser", null);
+    if (cur && cur.uid === uid) {
+      cur.onboarded = true;
+      if (profileData) Object.assign(cur, profileData);
+      lsSet("currentUser", cur);
     }
     return;
   }
-  try {
-    localStorage.setItem(`life_saver_${key}`, JSON.stringify(data));
-  } catch (e) {
-    console.error("Local storage write failed:", e);
-  }
+  await setDoc(doc(db, "users", uid), { onboarded: true, ...profileData }, { merge: true });
+}
+
+// ─── SETTINGS ─────────────────────────────────────────────────────────────────
+
+const DEFAULT_SETTINGS: UserSettings = {
+  workingHours: { start: "09:00", end: "17:00" },
+  currentEnergyState: "high",
+  pomodoroConfig: { focusDuration: 25, breakDuration: 5 },
 };
 
-// Check if we are running in Firebase Mode or Sandbox Mode
-export const isSandboxMode = () => !db;
-
-// DATABASE FUNCTIONS
-// 1. User Settings
 export async function getSettings(): Promise<UserSettings> {
-  const defaultSettings: UserSettings = {
-    workingHours: { start: "09:00", end: "17:00" },
-    currentEnergyState: "high",
-    pomodoroConfig: { focusDuration: 25, breakDuration: 5 }
-  };
-
-  if (!db) {
-    return loadLocalData("settings", defaultSettings);
-  }
-
+  if (!db) return lsGet("settings", DEFAULT_SETTINGS);
   try {
-    const docRef = doc(db, "settings", "user_profile");
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      return docSnap.data() as UserSettings;
-    }
-    await setDoc(docRef, defaultSettings);
-    return defaultSettings;
-  } catch (error) {
-    console.error("Error reading settings, using fallback:", error);
-    return defaultSettings;
-  }
+    const uid = await requireUid();
+    const snap = await getDoc(doc(db, "users", uid, "data", "settings"));
+    return snap.exists() ? (snap.data() as UserSettings) : DEFAULT_SETTINGS;
+  } catch { return DEFAULT_SETTINGS; }
 }
 
 export async function saveSettings(settings: Partial<UserSettings>): Promise<UserSettings> {
   const current = await getSettings();
   const updated = { ...current, ...settings };
-
-  if (!db) {
-    _saveLocalData("settings", updated);
-    return updated;
-  }
-
+  if (!db) { lsSet("settings", updated); return updated; }
   try {
-    const docRef = doc(db, "settings", "user_profile");
-    await setDoc(docRef, updated, { merge: true });
-    return updated;
-  } catch (error) {
-    console.error("Error saving settings, saving locally:", error);
-    _saveLocalData("settings", updated);
-    return updated;
-  }
+    const uid = await requireUid();
+    await setDoc(doc(db, "users", uid, "data", "settings"), updated, { merge: true });
+  } catch { lsSet("settings", updated); }
+  return updated;
 }
 
-// 2. Tasks
+// ─── TASKS ───────────────────────────────────────────────────────────────────
+
 export async function getTasks(): Promise<Task[]> {
   if (!db) {
-    const tasksObj = loadLocalData("tasks", {});
-    return Object.values(tasksObj);
+    const obj = lsGet<Record<string, Task>>("tasks", {});
+    return Object.values(obj);
   }
-
   try {
-    const querySnapshot = await getDocs(collection(db, "tasks"));
-    const tasks: Task[] = [];
-    querySnapshot.forEach((docSnap) => {
-      tasks.push(docSnap.data() as Task);
-    });
-    return tasks;
-  } catch (error) {
-    console.error("Error loading tasks, loading locally:", error);
-    const tasksObj = loadLocalData("tasks", {});
-    return Object.values(tasksObj);
+    const uid = await requireUid();
+    const snap = await getDocs(collection(db, "users", uid, "tasks"));
+    return snap.docs.map((d) => d.data() as Task);
+  } catch {
+    return Object.values(lsGet<Record<string, Task>>("tasks", {}));
   }
 }
 
 export async function getTask(id: string): Promise<Task | null> {
-  if (!db) {
-    const tasksObj = loadLocalData("tasks", {});
-    return tasksObj[id] || null;
-  }
-
+  if (!db) return lsGet<Record<string, Task>>("tasks", {})[id] ?? null;
   try {
-    const docRef = doc(db, "tasks", id);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      return docSnap.data() as Task;
-    }
-    return null;
-  } catch (error) {
-    console.error(`Error loading task ${id}:`, error);
-    const tasksObj = loadLocalData("tasks", {});
-    return tasksObj[id] || null;
-  }
+    const uid = await requireUid();
+    const snap = await getDoc(doc(db, "users", uid, "tasks", id));
+    return snap.exists() ? (snap.data() as Task) : null;
+  } catch { return null; }
 }
 
 export async function saveTask(task: Task): Promise<Task> {
   if (!db) {
-    const tasksObj = loadLocalData("tasks", {});
-    tasksObj[task.id] = task;
-    _saveLocalData("tasks", tasksObj);
+    const obj = lsGet<Record<string, Task>>("tasks", {});
+    obj[task.id] = task;
+    lsSet("tasks", obj);
     return task;
   }
-
   try {
-    const docRef = doc(db, "tasks", task.id);
-    await setDoc(docRef, task, { merge: true });
-    return task;
-  } catch (error) {
-    console.error(`Error saving task ${task.id}:`, error);
-    const tasksObj = loadLocalData("tasks", {});
-    tasksObj[task.id] = task;
-    _saveLocalData("tasks", tasksObj);
-    return task;
+    const uid = await requireUid();
+    await setDoc(doc(db, "users", uid, "tasks", task.id), task, { merge: true });
+  } catch {
+    const obj = lsGet<Record<string, Task>>("tasks", {});
+    obj[task.id] = task;
+    lsSet("tasks", obj);
   }
+  return task;
 }
 
 export async function updateTaskFields(id: string, fields: Partial<Task>): Promise<Task | null> {
   const task = await getTask(id);
   if (!task) return null;
-  
-  const updatedTask = { ...task, ...fields, updatedAt: new Date().toISOString() };
-  return saveTask(updatedTask);
+  return saveTask({ ...task, ...fields, updatedAt: new Date().toISOString() });
 }
 
 export async function deleteTask(id: string): Promise<boolean> {
   if (!db) {
-    const tasksObj = loadLocalData("tasks", {});
-    if (tasksObj[id]) {
-      delete tasksObj[id];
-      _saveLocalData("tasks", tasksObj);
-      return true;
-    }
+    const obj = lsGet<Record<string, Task>>("tasks", {});
+    if (obj[id]) { delete obj[id]; lsSet("tasks", obj); return true; }
     return false;
   }
-
   try {
-    await deleteDoc(doc(db, "tasks", id));
+    const uid = await requireUid();
+    await deleteDoc(doc(db, "users", uid, "tasks", id));
     return true;
-  } catch (error) {
-    console.error(`Error deleting task ${id}:`, error);
-    const tasksObj = loadLocalData("tasks", {});
-    if (tasksObj[id]) {
-      delete tasksObj[id];
-      _saveLocalData("tasks", tasksObj);
-      return true;
-    }
-    return false;
-  }
+  } catch { return false; }
 }
 
-// 3. Calendar Time Blocks
-export async function getTimeBlocks(): Promise<TimeBlock[]> {
-  if (!db) {
-    const blocksObj = loadLocalData("timeBlocks", {});
-    return Object.values(blocksObj);
-  }
+// ─── TIME BLOCKS ─────────────────────────────────────────────────────────────
 
+export async function getTimeBlocks(): Promise<TimeBlock[]> {
+  if (!db) return Object.values(lsGet<Record<string, TimeBlock>>("timeBlocks", {}));
   try {
-    const querySnapshot = await getDocs(collection(db, "timeBlocks"));
-    const blocks: TimeBlock[] = [];
-    querySnapshot.forEach((docSnap) => {
-      blocks.push(docSnap.data() as TimeBlock);
-    });
-    return blocks;
-  } catch (error) {
-    console.error("Error loading timeBlocks, loading locally:", error);
-    const blocksObj = loadLocalData("timeBlocks", {});
-    return Object.values(blocksObj);
+    const uid = await requireUid();
+    const snap = await getDocs(collection(db, "users", uid, "timeBlocks"));
+    return snap.docs.map((d) => d.data() as TimeBlock);
+  } catch {
+    return Object.values(lsGet<Record<string, TimeBlock>>("timeBlocks", {}));
   }
 }
 
 export async function saveTimeBlocks(blocks: TimeBlock[]): Promise<TimeBlock[]> {
   if (!db) {
-    const blocksObj: Record<string, TimeBlock> = {};
-    blocks.forEach(b => {
-      blocksObj[b.id] = b;
-    });
-    _saveLocalData("timeBlocks", blocksObj);
+    const obj: Record<string, TimeBlock> = {};
+    blocks.forEach((b) => (obj[b.id] = b));
+    lsSet("timeBlocks", obj);
     return blocks;
   }
-
   try {
+    const uid = await requireUid();
     for (const b of blocks) {
-      await setDoc(doc(db, "timeBlocks", b.id), b, { merge: true });
+      await setDoc(doc(db, "users", uid, "timeBlocks", b.id), b, { merge: true });
     }
-    return blocks;
-  } catch (error) {
-    console.error("Error saving time blocks, saving locally:", error);
-    const blocksObj = loadLocalData("timeBlocks", {});
-    blocks.forEach(b => {
-      blocksObj[b.id] = b;
-    });
-    _saveLocalData("timeBlocks", blocksObj);
-    return blocks;
+  } catch {
+    const obj: Record<string, TimeBlock> = {};
+    blocks.forEach((b) => (obj[b.id] = b));
+    lsSet("timeBlocks", obj);
   }
+  return blocks;
 }
 
 export async function clearAllTimeBlocks(): Promise<void> {
-  if (!db) {
-    _saveLocalData("timeBlocks", {});
-    return;
-  }
-
+  if (!db) { lsSet("timeBlocks", {}); return; }
   try {
-    const querySnapshot = await getDocs(collection(db, "timeBlocks"));
-    for (const docSnap of querySnapshot.docs) {
-      await deleteDoc(doc(db, "timeBlocks", docSnap.id));
-    }
-  } catch (error) {
-    console.error("Error clearing time blocks, clearing locally:", error);
-    _saveLocalData("timeBlocks", {});
-  }
+    const uid = await requireUid();
+    const snap = await getDocs(collection(db, "users", uid, "timeBlocks"));
+    for (const d of snap.docs) await deleteDoc(d.ref);
+  } catch { lsSet("timeBlocks", {}); }
 }
 
-// 4. Communication Log History
+// ─── COMMUNICATION LOGS ───────────────────────────────────────────────────────
+
 export async function getCommunicationHistory(): Promise<CommunicationLog[]> {
-  const defaultLogs = {};
-  const logsObj = loadLocalData("communicationLogs", defaultLogs);
-  return Object.values(logsObj);
+  if (!db) return Object.values(lsGet<Record<string, CommunicationLog>>("communicationLogs", {}));
+  try {
+    const uid = await requireUid();
+    const snap = await getDocs(collection(db, "users", uid, "communicationLogs"));
+    return snap.docs.map((d) => d.data() as CommunicationLog);
+  } catch {
+    return Object.values(lsGet<Record<string, CommunicationLog>>("communicationLogs", {}));
+  }
 }
 
 export async function saveCommunicationLog(
-  taskId: string, 
-  taskTitle: string, 
-  stakeholder: string, 
+  taskId: string,
+  taskTitle: string,
+  stakeholder: string,
   draft: string
 ): Promise<CommunicationLog> {
-  const logsObj = loadLocalData("communicationLogs", {});
   const newLog: CommunicationLog = {
-    id: `comm_${Math.random().toString(36).substr(2, 9)}`,
+    id: `comm_${crypto.randomUUID().slice(0, 9)}`,
     taskId,
     taskTitle,
     stakeholder,
     draft,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
-  logsObj[newLog.id] = newLog;
-  _saveLocalData("communicationLogs", logsObj);
-  
-  // Also add to system logs
-  addSystemLog(`Created Stakeholder Shield extension request for "${taskTitle}" to ${stakeholder}.`);
+
+  if (!db) {
+    const obj = lsGet<Record<string, CommunicationLog>>("communicationLogs", {});
+    obj[newLog.id] = newLog;
+    lsSet("communicationLogs", obj);
+    return newLog;
+  }
+
+  try {
+    const uid = await requireUid();
+    await setDoc(doc(db, "users", uid, "communicationLogs", newLog.id), newLog);
+  } catch {
+    const obj = lsGet<Record<string, CommunicationLog>>("communicationLogs", {});
+    obj[newLog.id] = newLog;
+    lsSet("communicationLogs", obj);
+  }
   return newLog;
 }
 
-// 5. System Logs console queue
-export function getSystemLogs(): Array<{ timestamp: string; message: string }> {
-  const defaultLogs = [
-    { timestamp: new Date().toISOString(), message: "System initialized successfully." },
-    { timestamp: new Date().toISOString(), message: "Mock databases linked to local Sandbox environment." }
-  ];
-  return loadLocalData("systemLogs", defaultLogs);
+// ─── ACTIVITY LOGS (replaces system logs + token tracking) ───────────────────
+
+export interface ActivityLog {
+  timestamp: string;
+  message: string;
 }
 
-export function addSystemLog(message: string): void {
-  const currentLogs = getSystemLogs();
-  const updated = [{ timestamp: new Date().toISOString(), message }, ...currentLogs].slice(0, 100);
-  _saveLocalData("systemLogs", updated);
+export function getActivityLogs(): ActivityLog[] {
+  return lsGet<ActivityLog[]>("activityLogs", []);
 }
 
-// 6. Token Expenditures Monitoring
-export function getTokenConsumption(): { flashCount: number; proCount: number } {
-  return loadLocalData("tokenStats", { flashCount: 142, proCount: 48 });
+export function addActivityLog(message: string): void {
+  const logs = getActivityLogs();
+  const updated = [{ timestamp: new Date().toISOString(), message }, ...logs].slice(0, 50);
+  lsSet("activityLogs", updated);
 }
 
-export function incrementTokenConsumption(model: "flash" | "pro", count: number): void {
-  const stats = getTokenConsumption();
-  if (model === "flash") {
-    stats.flashCount += count;
-  } else {
-    stats.proCount += count;
-  }
-  _saveLocalData("tokenStats", stats);
-}
+// ─── Legacy compatibility shims ───────────────────────────────────────────────
+// Keep these so existing dashboard code doesn't break during transition
 
-// 7. Simulated Authentication API Layer
-export async function getCurrentUser(): Promise<UserProfile | null> {
-  // If sandbox, use local session storage
-  const activeUser = loadLocalData("currentUser", null);
-  return activeUser;
+export function getSystemLogs(): ActivityLog[] { return getActivityLogs(); }
+export function addSystemLog(msg: string): void { addActivityLog(msg); }
+export function getTokenConsumption() { return lsGet("tokenStats", { flashCount: 0, proCount: 0 }); }
+export function incrementTokenConsumption(model: "flash" | "pro", count: number) {
+  const s = getTokenConsumption();
+  if (model === "flash") s.flashCount += count; else s.proCount += count;
+  lsSet("tokenStats", s);
 }
-
-export async function authLogin(email: string): Promise<UserProfile> {
-  // Simple sandbox login
-  const users = loadLocalData("users", {
-    "user_guest": { uid: "user_guest", email: "guest@lifesaver.ai", displayName: "Demo User", createdAt: new Date().toISOString(), onboarded: true }
-  });
-  
-  // Find or create profile
-  let found = Object.values(users).find((u: any) => u.email === email) as UserProfile;
-  if (!found) {
-    found = {
-      uid: `user_${Math.random().toString(36).substr(2, 9)}`,
-      email,
-      displayName: email.split("@")[0],
-      createdAt: new Date().toISOString(),
-      onboarded: false
-    };
-    users[found.uid] = found;
-    _saveLocalData("users", users);
-  }
-  
-  _saveLocalData("currentUser", found);
-  addSystemLog(`User ${email} signed in successfully.`);
-  return found;
-}
-
-export async function authRegister(email: string, displayName?: string): Promise<UserProfile> {
-  const users = loadLocalData("users", {});
-  const newUser: UserProfile = {
-    uid: `user_${Math.random().toString(36).substr(2, 9)}`,
-    email,
-    displayName: displayName || email.split("@")[0],
-    createdAt: new Date().toISOString(),
-    onboarded: false
-  };
-  
-  users[newUser.uid] = newUser;
-  _saveLocalData("users", users);
-  _saveLocalData("currentUser", newUser);
-  
-  addSystemLog(`Registered new user cohort ${email}.`);
-  return newUser;
-}
-
-export async function authLogout(): Promise<void> {
-  const user = await getCurrentUser();
-  if (user) {
-    addSystemLog(`User ${user.email} logged out.`);
-  }
-  _saveLocalData("currentUser", null);
-}
-
-export async function getMockUsersList(): Promise<UserProfile[]> {
-  const users = loadLocalData("users", {
-    "user_guest": { uid: "user_guest", email: "guest@lifesaver.ai", displayName: "Demo User", createdAt: new Date().toISOString(), onboarded: true },
-    "user_alice": { uid: "user_alice", email: "alice.doe@startup.com", displayName: "Alice Doe", createdAt: new Date().toISOString(), onboarded: true }
-  });
-  return Object.values(users);
-}
-
-export async function setOnboardingCompleted(uid: string): Promise<void> {
-  const users = loadLocalData("users", {});
-  if (users[uid]) {
-    users[uid].onboarded = true;
-    _saveLocalData("users", users);
-    
-    const active = loadLocalData("currentUser", null);
-    if (active && active.uid === uid) {
-      active.onboarded = true;
-      _saveLocalData("currentUser", active);
-    }
-    
-    addSystemLog(`User ${users[uid].email} completed initial configuration wizard.`);
-  }
-}
+export async function getMockUsersList(): Promise<UserProfile[]> { return []; }

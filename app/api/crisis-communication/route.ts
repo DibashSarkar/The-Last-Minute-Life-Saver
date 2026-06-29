@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
 import { runCrisisCommunication } from "@/lib/gemini";
 import { getTask } from "@/lib/firebase";
+import { verifyAuthToken, unauthorizedResponse } from "@/lib/firebase-admin";
 
 export async function POST(request: Request) {
-  try {
-    const { taskId, stakeholderType } = await request.json();
+  const uid = await verifyAuthToken(request);
+  if (!uid) return unauthorizedResponse();
 
-    if (!taskId || !stakeholderType) {
+  if (!request.headers.get("content-type")?.includes("application/json")) {
+    return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
+  }
+
+  try {
+    const { taskId, stakeholderType, disposition } = await request.json();
+
+    if (!taskId || typeof taskId !== "string" || !stakeholderType || typeof stakeholderType !== "string") {
       return NextResponse.json({ error: "Task ID and Stakeholder Type are required" }, { status: 400 });
     }
 
@@ -15,19 +23,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // Call Gemini Pro for high-quality, professional stakeholder message generation
     const { draft, modelUsed } = await runCrisisCommunication(
       task.title,
       stakeholderType,
-      task.description || "No description provided"
+      task.description || "",
+      disposition || "Formal & Professional"
     );
 
-    return NextResponse.json({
-      draft,
-      modelUsed,
-    });
+    return NextResponse.json({ draft, modelUsed });
   } catch (error: any) {
     console.error("API Crisis Communication error:", error);
-    return NextResponse.json({ error: error.message || "Failed to generate communication draft" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to write message — please try again" }, { status: 500 });
   }
 }

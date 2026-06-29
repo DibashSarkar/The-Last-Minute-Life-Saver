@@ -61,7 +61,7 @@ export default function MobileBottomNav() {
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-950/95 border-t border-slate-900/80 backdrop-blur-md z-50 py-2.5 px-4 flex items-center justify-around shadow-2xl safe-bottom">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 border-t border-border backdrop-blur-md z-50 py-2.5 px-4 flex items-center justify-around shadow-2xl safe-bottom transition-colors duration-300">
       {navItems.map((item, index) => {
         const isActive = activePath === item.path;
         return (
@@ -70,8 +70,8 @@ export default function MobileBottomNav() {
             href={item.path}
             className={`flex flex-col items-center gap-1.5 transition-all text-center ${
               isActive 
-                ? "text-indigo-400 font-semibold" 
-                : "text-slate-500 hover:text-slate-300"
+                ? "text-primary font-semibold" 
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {item.icon}
