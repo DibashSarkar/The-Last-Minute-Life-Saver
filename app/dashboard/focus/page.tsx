@@ -144,6 +144,19 @@ export default function FocusMode() {
     checkAuthAndLoad();
   }, []);
 
+  // Toggle between focus and break modes
+  const toggleTimerMode = async () => {
+    const settings = await getSettings();
+    if (timerMode === "focus") {
+      setTimerMode("break");
+      setTimerMinutes(settings.pomodoroConfig?.breakDuration || 5);
+    } else {
+      setTimerMode("focus");
+      setTimerMinutes(settings.pomodoroConfig?.focusDuration || 25);
+    }
+    setTimerSeconds(0);
+  };
+
   // Timer loop
   useEffect(() => {
     if (isTimerRunning) {
@@ -156,7 +169,7 @@ export default function FocusMode() {
         } else {
           clearInterval(timerRef.current!);
           setIsTimerRunning(false);
-          alert(timerMode === "focus" ? "⏰ Time's up! Great focus session. Take a short break." : "☕ Break over! Ready to dive back in?");
+          alert(timerMode === "focus" ? "Time's up! Great focus session. Take a short break." : "Break over! Ready to dive back in?");
           toggleTimerMode();
         }
       }, 1000);
@@ -164,6 +177,7 @@ export default function FocusMode() {
       if (timerRef.current) clearInterval(timerRef.current);
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTimerRunning, timerMinutes, timerSeconds, timerMode]);
 
   // Elapsed seconds counter
@@ -211,17 +225,6 @@ export default function FocusMode() {
     };
   }, [soundType]);
 
-  const toggleTimerMode = async () => {
-    const settings = await getSettings();
-    if (timerMode === "focus") {
-      setTimerMode("break");
-      setTimerMinutes(settings.pomodoroConfig?.breakDuration || 5);
-    } else {
-      setTimerMode("focus");
-      setTimerMinutes(settings.pomodoroConfig?.focusDuration || 25);
-    }
-    setTimerSeconds(0);
-  };
 
   const handleStartPause = () => setIsTimerRunning(!isTimerRunning);
 

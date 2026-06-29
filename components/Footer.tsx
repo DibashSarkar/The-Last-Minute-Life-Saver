@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { IconBrandFacebook, IconBrandTwitter, IconBrandInstagram, IconBrandLinkedin } from "@tabler/icons-react";
 
 export default function Footer() {
@@ -27,7 +28,7 @@ export default function Footer() {
           
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
-            <a href="/" className="flex items-center gap-2.5">
+            <Link href="/" className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -36,7 +37,7 @@ export default function Footer() {
               <span className="font-semibold text-base tracking-tight text-white">
                 Life Saver
               </span>
-            </a>
+            </Link>
             <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
               Shielding your schedule against delays and anxiety. Unpack unstructured brain dumps, shift calendars on the fly, and auto-negotiate with stakeholders using Gemini.
             </p>

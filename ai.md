@@ -10,7 +10,7 @@ The primary evaluation focus is to demonstrate how AI can improve productivity b
 - **Frontend & API:** Next.js (App Router), TypeScript, Tailwind CSS.
 - **UI Primitives:** shadcn/ui configured specifically with **Base UI** (MUI-backed primitives).
 - **Database / Backend:** Firebase Firestore (for real-time data syncing).
-- **AI Brain:** Google AI Studio (Gemini 1.5 Flash / Gemini 1.5 Pro) via the `@google/genai` Node SDK.
+- **AI Brain:** Google AI Studio (Gemini 3.5 Flash / Gemini 1.5 Pro) via the `@google/genai` Node SDK.
 - **Deployment:** Containerized (Docker) and deployed on Google Cloud Run[cite: 1].
 
 ## 3. Comprehensive Feature Set

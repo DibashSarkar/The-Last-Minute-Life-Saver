@@ -1,14 +1,15 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans pb-16">
       <header className="border-b border-slate-900 bg-slate-950/80 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-30">
-        <a href="/" className="text-slate-400 hover:text-slate-200 text-xs font-semibold flex items-center gap-1">
+        <Link href="/" className="text-slate-400 hover:text-slate-200 text-xs font-semibold flex items-center gap-1">
           ← Back to Homepage
-        </a>
+        </Link>
         <h1 className="text-sm font-semibold tracking-wide text-indigo-400 uppercase">
           Terms & Conditions
         </h1>

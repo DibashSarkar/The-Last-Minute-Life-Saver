@@ -13,8 +13,9 @@ if (apiKey) {
 }
 
 // Model Routing Definitions
-const MODEL_FLASH = "gemini-1.5-flash";
+const MODEL_FLASH = "gemini-3.5-flash";
 const MODEL_PRO = "gemini-1.5-pro";
+const MODEL_FALLBACK = "gemini-2.5-flash-lite";
 
 // Helper to delay for simulation
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -182,9 +183,24 @@ export async function runPanicDump(text: string): Promise<{
 
     return { tasks: data.tasks || [], modelUsed: MODEL_FLASH };
   } catch (error) {
-    console.error("Gemini Panic Dump error, falling back to mock:", error);
-    incrementTokenConsumption("flash", 150);
-    return { ...mockPanicDump(text), modelUsed: `Fallback: ${MODEL_FLASH} (Error)` };
+    console.warn(`${MODEL_FLASH} failed, retrying with fallback ${MODEL_FALLBACK}:`, error);
+    try {
+      const fallbackResponse = await ai!.models.generateContent({
+        model: MODEL_FALLBACK,
+        contents: `You are a triage agent for a panicked, overwhelmed user. The user wrote this brain dump: "${text}". Break this down into distinct, atomic, realistic tasks. Estimate how long each task will take in minutes. Categorize them using the Eisenhower matrix (importance and urgency flags). Estimate energy required: high/medium/low. Estimate deadlineOffsetDays (0 = today).`,
+        config: { responseMimeType: "application/json" }
+      });
+      const fallbackText = fallbackResponse.text;
+      if (!fallbackText) throw new Error("Empty fallback response");
+      const fallbackData = JSON.parse(fallbackText);
+      incrementTokenConsumption("flash", Math.ceil(fallbackText.length / 4) + 150);
+      addSystemLog(`Panic dump parsed via fallback model ${MODEL_FALLBACK}.`);
+      return { tasks: fallbackData.tasks || [], modelUsed: MODEL_FALLBACK };
+    } catch (fallbackError) {
+      console.error("Fallback also failed, using mock:", fallbackError);
+      incrementTokenConsumption("flash", 150);
+      return { ...mockPanicDump(text), modelUsed: `Mock (${MODEL_FALLBACK} also failed)` };
+    }
   }
 }
 
@@ -260,9 +276,29 @@ export async function runPreResearch(
       modelUsed: MODEL_PRO
     };
   } catch (error) {
-    console.error("Gemini Pre-Research error, falling back to mock:", error);
-    incrementTokenConsumption("pro", 500);
-    return { ...mockPreResearch(title, description), modelUsed: `Fallback: ${MODEL_PRO} (Error)` };
+    console.warn(`${MODEL_PRO} failed, retrying with fallback ${MODEL_FALLBACK}:`, error);
+    try {
+      const fallbackResponse = await ai!.models.generateContent({
+        model: MODEL_FALLBACK,
+        contents: `You are a pre-research assistant. Task Title: "${title}". Task Description: "${description}". Generate: 3 target audience profiles, 3 headline/hook angles, and a structural outline to eliminate starting friction.`,
+        config: { responseMimeType: "application/json" }
+      });
+      const fallbackText = fallbackResponse.text;
+      if (!fallbackText) throw new Error("Empty fallback response");
+      const fallbackData = JSON.parse(fallbackText);
+      incrementTokenConsumption("pro", Math.ceil(fallbackText.length / 4) + 500);
+      addSystemLog(`Pre-research scaffolding generated via fallback model ${MODEL_FALLBACK}.`);
+      return {
+        targetAudiences: fallbackData.targetAudiences || [],
+        headlineAngles: fallbackData.headlineAngles || [],
+        structuralTemplates: fallbackData.structuralTemplates || [],
+        modelUsed: MODEL_FALLBACK
+      };
+    } catch (fallbackError) {
+      console.error("Fallback also failed, using mock:", fallbackError);
+      incrementTokenConsumption("pro", 500);
+      return { ...mockPreResearch(title, description), modelUsed: `Mock (${MODEL_FALLBACK} also failed)` };
+    }
   }
 }
 
@@ -380,15 +416,35 @@ export async function runAutoNegotiation(
       modelUsed: MODEL_FLASH
     };
   } catch (error) {
-    console.error("Gemini Auto-Negotiation error, falling back to mock:", error);
-    incrementTokenConsumption("flash", 300);
-    const lowPriority = otherBlocks.find(b => !b.importance && !b.isCompleted);
-    return {
-      rescheduledBlocks: [{ id: missedBlock.id, startTime: missedBlock.startTime, endTime: missedBlock.endTime }],
-      droppedBlockIds: lowPriority ? [lowPriority.id] : [],
-      explanation: `Failsafe Shift: Rescheduled "${missedBlock.title}". Deferred "${lowPriority?.title || 'None'}" due to a connectivity fallback.`,
-      modelUsed: `Fallback: ${MODEL_FLASH} (Error)`
-    };
+    console.warn(`${MODEL_FLASH} failed, retrying with fallback ${MODEL_FALLBACK}:`, error);
+    try {
+      const fallbackResponse = await ai!.models.generateContent({
+        model: MODEL_FALLBACK,
+        contents: `Crisis schedule coordinator: Missed task "${missedBlock.title}" (${missedBlock.startTime}–${missedBlock.endTime}). Other tasks: ${JSON.stringify(otherBlocks.map(b => ({ id: b.id, title: b.title, start: b.startTime, end: b.endTime, important: b.importance, urgent: b.urgency })))}. Working hours: ${workingHours.start}–${workingHours.end}. Reschedule the missed task and drop lower-priority items. Return JSON with rescheduledBlocks, droppedBlockIds, and explanation.`,
+        config: { responseMimeType: "application/json" }
+      });
+      const fallbackText = fallbackResponse.text;
+      if (!fallbackText) throw new Error("Empty fallback response");
+      const fallbackData = JSON.parse(fallbackText);
+      incrementTokenConsumption("flash", Math.ceil(fallbackText.length / 4) + 300);
+      addSystemLog(`Auto-negotiation complete via fallback model ${MODEL_FALLBACK}.`);
+      return {
+        rescheduledBlocks: fallbackData.rescheduledBlocks || [],
+        droppedBlockIds: fallbackData.droppedBlockIds || [],
+        explanation: fallbackData.explanation || "",
+        modelUsed: MODEL_FALLBACK
+      };
+    } catch (fallbackError) {
+      console.error("Fallback also failed, using mock:", fallbackError);
+      incrementTokenConsumption("flash", 300);
+      const lowPriority = otherBlocks.find(b => !b.importance && !b.isCompleted);
+      return {
+        rescheduledBlocks: [{ id: missedBlock.id, startTime: missedBlock.startTime, endTime: missedBlock.endTime }],
+        droppedBlockIds: lowPriority ? [lowPriority.id] : [],
+        explanation: `Failsafe Shift: Rescheduled "${missedBlock.title}". Deferred "${lowPriority?.title || 'None'}" due to connectivity issues.`,
+        modelUsed: `Mock (${MODEL_FALLBACK} also failed)`
+      };
+    }
   }
 }
 
@@ -445,11 +501,23 @@ export async function runCrisisCommunication(
 
     return { draft, modelUsed: MODEL_PRO };
   } catch (error) {
-    console.error("Gemini Crisis Communication error, falling back to mock:", error);
-    incrementTokenConsumption("pro", 400);
-    return { 
-      draft: mockCrisisCommunication(taskTitle, stakeholderType), 
-      modelUsed: `Fallback: ${MODEL_PRO} (Error)` 
-    };
+    console.warn(`${MODEL_PRO} failed, retrying with fallback ${MODEL_FALLBACK}:`, error);
+    try {
+      const fallbackResponse = await ai!.models.generateContent({
+        model: MODEL_FALLBACK,
+        contents: `You are a professional communication advisor. Draft a concise, professional extension request email for task "${taskTitle}" addressed to a ${stakeholderType}. Tone: ${disposition}. Take accountability, propose a 2-3 hour delay, and make it easy to approve. Do NOT use placeholders.`
+      });
+      const fallbackDraft = fallbackResponse.text || mockCrisisCommunication(taskTitle, stakeholderType);
+      incrementTokenConsumption("pro", Math.ceil(fallbackDraft.length / 4) + 400);
+      addSystemLog(`Stakeholder draft generated via fallback model ${MODEL_FALLBACK}.`);
+      return { draft: fallbackDraft, modelUsed: MODEL_FALLBACK };
+    } catch (fallbackError) {
+      console.error("Fallback also failed, using mock:", fallbackError);
+      incrementTokenConsumption("pro", 400);
+      return {
+        draft: mockCrisisCommunication(taskTitle, stakeholderType),
+        modelUsed: `Mock (${MODEL_FALLBACK} also failed)`
+      };
+    }
   }
 }

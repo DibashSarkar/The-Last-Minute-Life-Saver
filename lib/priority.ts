@@ -129,11 +129,11 @@ export function autoScheduleTasks(
   const workingDuration = workingEndMin - workingStartMin;
 
   const now = new Date();
-  let currentDay = new Date(now);
+  const currentDay = new Date(now);
   
   // Set current scheduling pointer
-  let currentHour = now.getHours();
-  let currentMin = now.getMinutes();
+  const currentHour = now.getHours();
+  const currentMin = now.getMinutes();
   let currentPointerMinutes = currentHour * 60 + currentMin;
 
   // Round up to next 15-minute slot

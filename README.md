@@ -32,7 +32,7 @@ Most productivity tools are passive. They remind you of deadlines you already kn
 Frontend:   Next.js 16 (App Router) · TypeScript · Tailwind CSS v4
 UI:         shadcn/ui (Base UI / base-mira) · @base-ui/react · @tabler/icons-react
 Font:       Geist Sans + Geist Mono
-AI:         Google Gemini 1.5 Flash + 1.5 Pro via @google/genai
+AI:         Google Gemini 3.5 Flash + 1.5 Pro via @google/genai
 Database:   Firebase Firestore (real-time) + Firebase Admin (server-side)
 Auth:       Firebase Authentication
 Deployment: Docker → Google Cloud Run (standalone output)
@@ -157,7 +157,35 @@ gcloud run deploy last-minute-life-saver \
 
 ---
 
+## 🧪 Demo Access
+
+> The app runs in **Sandbox Mode** automatically when Firebase is not configured — all data is stored in `localStorage` with no account required.
+
+### Test User (Sandbox / Demo)
+
+| Field | Value |
+|---|---|
+| **Email** | `guest@lifesaver.ai` |
+| **Password** | *(any — no password required in sandbox mode)* |
+| **Mode** | Sandbox — data lives in browser localStorage |
+
+Use this account to explore the full UI without needing a Firebase project or Gemini API key. All AI features will return realistic mock responses.
+
+### Admin Panel
+
+| Route | Description |
+|---|---|
+| `/admin` | Overview — system health, latency, outage toggle |
+| `/admin/users` | Registered user list |
+| `/admin/tokens` | Gemini token consumption telemetry (Flash vs Pro) |
+| `/admin/logs` | Live system activity log |
+
+> **Access:** Any logged-in user can access the admin panel during development. In production, add an `isAdmin` flag check to `checkAdminAuth()` in [`app/admin/page.tsx`](app/admin/page.tsx).
+
+---
+
 ## License
+
 
 This project is the original work of **Dibash Sarkar**, submitted for Vibe2Ship 2026.  
 All intellectual property rights are retained by the author.  
