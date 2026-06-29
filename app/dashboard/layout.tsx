@@ -138,7 +138,7 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex min-h-screen w-full bg-background text-foreground transition-colors duration-300 font-sans">
+      <div className="flex min-h-screen w-full bg-muted/30 dark:bg-muted/10 text-foreground transition-colors duration-300 font-sans">
 
         {/* Floating Sidebar */}
         <Suspense fallback={<div className="w-64 h-screen bg-card" />}>
@@ -146,7 +146,7 @@ export default function DashboardLayout({
         </Suspense>
 
         {/* Main Content Area */}
-        <SidebarInset className="flex flex-col flex-1 min-w-0">
+        <SidebarInset className="flex flex-col flex-1 min-w-0 md:my-2 md:mr-2 md:ml-0 md:rounded-xl md:border md:border-border md:shadow-sm overflow-hidden bg-background">
 
           {/* Header Bar */}
           <header className="flex h-12 items-center justify-between gap-4 border-b border-border bg-background/95 px-4 md:px-5 backdrop-blur-md sticky top-0 z-40">

@@ -166,7 +166,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarSeparator className="mx-3" />
+      <SidebarSeparator className="mx-3 !w-auto" />
 
       {/* Main Navigation */}
       <SidebarContent className="py-2">
@@ -303,7 +303,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarSeparator className="mx-3" />
+      <SidebarSeparator className="mx-3 !w-auto" />
 
       {/* Footer – User */}
       <SidebarFooter className="py-2 px-2">
