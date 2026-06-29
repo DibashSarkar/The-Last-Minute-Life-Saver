@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, Suspense, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { IconBolt, IconSun, IconMoon, IconBell, IconCheck } from "@tabler/icons-react";
+import { IconBolt, IconSun, IconMoon, IconBell, IconCheck, IconLayoutDashboard, IconHeart, IconBrain, IconUser } from "@tabler/icons-react";
 import { getCurrentUser } from "@/lib/firebase";
 import { getNotifications, markAllAsRead, NotificationItem, playNotificationSound } from "@/lib/notifications";
 
@@ -12,6 +13,37 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const [activeTab, setActiveTab] = useState("overview");
+
+  useEffect(() => {
+    const updateTab = () => {
+      const params = new URLSearchParams(window.location.search);
+      setActiveTab(params.get("tab") || "overview");
+    };
+    updateTab();
+    window.addEventListener("popstate", updateTab);
+    return () => window.removeEventListener("popstate", updateTab);
+  }, [pathname]);
+
+  const [showHeader, setShowHeader] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 60) {
+        setShowHeader(false);
+      } else {
+        setShowHeader(true);
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [userName, setUserName] = useState("Companion");
   const [currentTime, setCurrentTime] = useState("");
@@ -122,6 +154,11 @@ export default function DashboardLayout({
     return () => clearInterval(soundInterval);
   }, [activePopup, isMuted]);
 
+  const navigateToTab = (tab: string, path: string = "/dashboard") => {
+    window.history.pushState(null, "", `${path}?tab=${tab}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
+
   const unreadCount = notifications.filter(n => !n.read).length;
   const recentNotifications = notifications.slice(0, 3);
 
@@ -148,8 +185,11 @@ export default function DashboardLayout({
         {/* Main Content Area */}
         <SidebarInset className="flex flex-col flex-1 min-w-0 md:my-2 md:mr-2 md:ml-0 md:rounded-xl md:border md:border-border md:shadow-sm overflow-hidden bg-background">
 
-          {/* Header Bar */}
-          <header className="flex h-12 items-center justify-between gap-4 border-b border-border bg-background/95 px-4 md:px-5 backdrop-blur-md sticky top-0 z-40">
+          {/* Header Bar — fixed on mobile, sticky on desktop */}
+          <header className={`flex h-12 items-center justify-between gap-4 fixed md:sticky top-2 left-2 right-2 md:left-auto md:right-auto md:top-0 z-40 mx-0 md:m-0 border border-border md:border-t-0 md:border-x-0 md:border-b bg-card/90 md:bg-background/95 backdrop-blur-md rounded-xl md:rounded-none shadow-sm md:shadow-none px-4 md:px-5 transition-all duration-300 ease-in-out ${
+            showHeader ? "translate-y-0 opacity-100" : "-translate-y-20 opacity-0 md:translate-y-0 md:opacity-100 pointer-events-none md:pointer-events-auto"
+          }`}>
+
             <div className="flex items-center gap-3 min-w-0">
               <SidebarTrigger className="h-7 w-7 rounded-[var(--radius)] border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer shrink-0" />
               <div className="hidden sm:flex items-center gap-2 text-[10px] font-bold tracking-tight min-w-0 max-w-lg lg:max-w-4xl select-none truncate">
@@ -275,12 +315,15 @@ export default function DashboardLayout({
 
           {/* Page content — full width, no extra padding container */}
           <div className="flex-1 flex flex-col overflow-x-hidden w-full relative">
+            {/* Spacer for fixed header on mobile only */}
+            <div className="h-16 md:hidden shrink-0" />
+            <div className="flex-1 flex flex-col pb-24 md:pb-0">
             {children}
             
             {/* Global Notification Toast Popup */}
             {activePopup && (
-              <div className="fixed inset-0 bg-background/60 backdrop-blur-md z-[999] flex items-center justify-center p-4 animate-in fade-in duration-200">
-                <div className="bg-card border-2 border-secondary/40 p-6 rounded-2xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200 space-y-4 relative">
+              <div className="fixed bottom-40 md:bottom-24 right-4 md:right-6 z-[999] w-[90vw] max-w-sm animate-in fade-in slide-in-from-bottom-4 duration-200">
+                <div className="bg-card border-2 border-secondary/40 p-5 rounded-2xl shadow-2xl w-full animate-in zoom-in-95 duration-200 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <span className="flex h-2.5 w-2.5 rounded-full bg-orange-500 animate-pulse"></span>
@@ -347,6 +390,68 @@ export default function DashboardLayout({
                 </div>
               </div>
             )}
+            {/* Floating Mobile Bottom Tab Bar */}
+            <div className="fixed bottom-4 left-4 right-4 z-50 md:hidden bg-card/95 backdrop-blur-md border border-border/80 p-2 rounded-2xl shadow-xl flex items-center justify-around select-none">
+              {/* Dashboard */}
+              <button
+                onClick={() => navigateToTab("overview")}
+                className={`flex flex-col items-center gap-0.5 transition-colors cursor-pointer ${
+                  activeTab === "overview" || activeTab === "" ? "text-primary font-black" : "text-muted-foreground/80"
+                }`}
+              >
+                <IconLayoutDashboard className="h-4.5 w-4.5 shrink-0" />
+                <span className="text-[7px] tracking-tight font-black uppercase">Dashboard</span>
+              </button>
+
+              {/* Alerts */}
+              <button
+                onClick={() => navigateToTab("notifications")}
+                className={`flex flex-col items-center gap-0.5 transition-colors relative cursor-pointer ${
+                  activeTab === "notifications" ? "text-primary font-black" : "text-muted-foreground/80"
+                }`}
+              >
+                <IconBell className="h-4.5 w-4.5 shrink-0" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-1 h-1.5 w-1.5 rounded-full bg-orange-500"></span>
+                )}
+                <span className="text-[7px] tracking-tight font-black uppercase">Alerts</span>
+              </button>
+
+              {/* Health */}
+              <button
+                onClick={() => navigateToTab("health")}
+                className={`flex flex-col items-center gap-0.5 transition-colors cursor-pointer ${
+                  activeTab === "health" ? "text-primary font-black" : "text-muted-foreground/80"
+                }`}
+              >
+                <IconHeart className="h-4.5 w-4.5 shrink-0 text-rose-500" />
+                <span className="text-[7px] tracking-tight font-black uppercase">Health</span>
+              </button>
+
+              {/* Workspace */}
+              <button
+                onClick={() => window.location.href = "/dashboard/workspace"}
+                className={`flex flex-col items-center gap-0.5 transition-colors cursor-pointer ${
+                  pathname.startsWith("/dashboard/workspace") ? "text-primary font-black" : "text-muted-foreground/80"
+                }`}
+              >
+                <IconBrain className="h-4.5 w-4.5 shrink-0 text-primary" />
+                <span className="text-[7px] tracking-tight font-black uppercase">Workspace</span>
+              </button>
+
+              {/* Profile */}
+              <button
+                onClick={() => window.location.href = "/dashboard/settings"}
+                className={`flex flex-col items-center gap-0.5 transition-colors cursor-pointer ${
+                  pathname.startsWith("/dashboard/settings") ? "text-primary font-black" : "text-muted-foreground/80"
+                }`}
+              >
+                <IconUser className="h-4.5 w-4.5 shrink-0" />
+                <span className="text-[7px] tracking-tight font-black uppercase">Profile</span>
+              </button>
+            </div>
+            </div>
+            {/* /inner pb-24 wrapper */}
           </div>
 
         </SidebarInset>

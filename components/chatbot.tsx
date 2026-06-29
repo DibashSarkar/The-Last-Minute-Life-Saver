@@ -110,7 +110,7 @@ export function Chatbot() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans">
+    <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 font-sans">
       {/* Floating Toggle Button */}
       {!isOpen && (
         <button
@@ -124,7 +124,7 @@ export function Chatbot() {
 
       {/* Chat Window Panel */}
       {isOpen && (
-        <div className="w-80 h-96 bg-card border border-border rounded-[var(--radius)] shadow-2xl flex flex-col overflow-hidden animate-fade-in animate-in zoom-in-95 duration-150">
+        <div className="w-[calc(100vw-2rem)] sm:w-80 h-[380px] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in animate-in zoom-in-95 duration-150 origin-bottom-right">
           {/* Header */}
           <div className="bg-primary px-4 py-3 flex items-center justify-between text-primary-foreground shadow">
             <div className="flex items-center gap-2">
