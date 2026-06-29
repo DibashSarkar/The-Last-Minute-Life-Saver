@@ -292,6 +292,49 @@ function DashboardContent() {
   const [medicineEnabled, setMedicineEnabled] = useState(false);
   const [mealsEnabled, setMealsEnabled] = useState(false);
 
+  // Custom Reminders State
+  interface CustomReminder {
+    id: string;
+    title: string;
+    message: string;
+    interval: string;
+    enabled: boolean;
+  }
+  const [customReminders, setCustomReminders] = useState<CustomReminder[]>([]);
+  const [customReminderTitle, setCustomReminderTitle] = useState("");
+  const [customReminderInterval, setCustomReminderInterval] = useState("20");
+  const [customReminderMessage, setCustomReminderMessage] = useState("");
+
+  // Load custom reminders initially
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("lifesaver_custom_reminders");
+      if (stored) {
+        setCustomReminders(JSON.parse(stored));
+      }
+    }
+  }, []);
+
+  const handleAddCustomReminder = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customReminderTitle.trim() || !customReminderMessage.trim()) return;
+
+    const newRem: CustomReminder = {
+      id: `custom_rem_${Date.now()}`,
+      title: customReminderTitle,
+      message: customReminderMessage,
+      interval: customReminderInterval,
+      enabled: true,
+    };
+
+    const updated = [newRem, ...customReminders];
+    setCustomReminders(updated);
+    localStorage.setItem("lifesaver_custom_reminders", JSON.stringify(updated));
+
+    setCustomReminderTitle("");
+    setCustomReminderMessage("");
+  };
+
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
@@ -2016,6 +2059,122 @@ function DashboardContent() {
                     Test Alarm Chime
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* Custom Reminders Builder */}
+            <div className="bg-card border border-border rounded-[var(--radius)] p-6 shadow-sm space-y-5">
+              <h3 className="text-xs font-bold text-foreground border-b border-border pb-3 flex items-center gap-1.5">
+                ➕ Create Custom Health Reminders
+              </h3>
+              
+              <form onSubmit={handleAddCustomReminder} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border border-border rounded-xl bg-background/50">
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase block">Reminder Title</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Eye Rest (20-20-20)"
+                    value={customReminderTitle}
+                    onChange={(e) => setCustomReminderTitle(e.target.value)}
+                    className="w-full text-[10px] bg-background border border-border rounded-lg p-2 font-semibold outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase block">Interval Schedule</label>
+                  <select
+                    value={customReminderInterval}
+                    onChange={(e) => setCustomReminderInterval(e.target.value)}
+                    className="w-full text-[10px] bg-background border border-border rounded-lg p-2 font-semibold cursor-pointer outline-none focus:border-primary"
+                  >
+                    <option value="15">Every 15 Minutes</option>
+                    <option value="20">Every 20 Minutes</option>
+                    <option value="30">Every 30 Minutes</option>
+                    <option value="45">Every 45 Minutes</option>
+                    <option value="60">Every 1 Hour</option>
+                    <option value="120">Every 2 Hours</option>
+                    <option value="180">Every 3 Hours</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5 font-bold md:col-span-2 flex items-end gap-2.5">
+                  <div className="flex-1 space-y-1.5">
+                    <label className="text-[9px] font-bold text-muted-foreground uppercase block">Message / Suggestion</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Look away at something green."
+                      value={customReminderMessage}
+                      onChange={(e) => setCustomReminderMessage(e.target.value)}
+                      className="w-full text-[10px] bg-background border border-border rounded-lg p-2 font-semibold outline-none focus:border-primary"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="bg-secondary hover:bg-secondary/95 text-white font-extrabold text-[10px] h-[35px] px-6 rounded-lg shadow-sm cursor-pointer transition-colors"
+                  >
+                    Add Reminder
+                  </button>
+                </div>
+              </form>
+
+              {/* List of Custom Reminders */}
+              <div className="space-y-2">
+                {customReminders.length === 0 ? (
+                  <p className="text-[10px] text-muted-foreground text-center py-4 border border-dashed border-border rounded-xl">No custom reminders created yet.</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {customReminders.map(rem => (
+                      <div key={rem.id} className="p-4 border border-border rounded-xl bg-background/50 flex flex-col justify-between gap-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="space-y-0.5">
+                            <h4 className="text-[11px] font-extrabold text-foreground flex items-center gap-1.5">
+                              🔔 {rem.title}
+                              <span className="text-[8px] bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded-full uppercase">
+                                Every {rem.interval}m
+                              </span>
+                            </h4>
+                            <p className="text-[9px] text-muted-foreground leading-relaxed font-semibold">{rem.message}</p>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={() => {
+                                const updated = customReminders.map(r => r.id === rem.id ? { ...r, enabled: !r.enabled } : r);
+                                setCustomReminders(updated);
+                                localStorage.setItem("lifesaver_custom_reminders", JSON.stringify(updated));
+                              }}
+                              className={`text-[9px] font-bold px-2 py-1 rounded-full border transition-colors ${
+                                rem.enabled ? "bg-primary text-white border-primary" : "bg-muted text-muted-foreground border-border"
+                              }`}
+                            >
+                              {rem.enabled ? "ON" : "OFF"}
+                            </button>
+                            <button
+                              onClick={() => {
+                                const updated = customReminders.filter(r => r.id !== rem.id);
+                                setCustomReminders(updated);
+                                localStorage.setItem("lifesaver_custom_reminders", JSON.stringify(updated));
+                              }}
+                              className="text-muted-foreground hover:text-destructive text-xs font-bold p-1 hover:bg-destructive/10 rounded-md transition-colors"
+                              title="Delete"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            addNotification(
+                              rem.title,
+                              rem.message,
+                              "update"
+                            );
+                          }}
+                          className="w-full text-center text-[9px] font-bold text-primary hover:underline block pt-1"
+                        >
+                          Test Alarm Chime
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
