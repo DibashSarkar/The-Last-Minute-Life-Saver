@@ -36,3 +36,5 @@
 [debug] [2026-06-30T00:05:08.816Z] Checked if tokens are valid: true, expires at: 1782779914687
 [debug] [2026-06-30T00:05:08.816Z] Checked if tokens are valid: true, expires at: 1782779914687
 [debug] [2026-06-30T00:05:08.816Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/webApps/-/config [none]
+[debug] [2026-06-30T00:05:10.335Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/webApps/-/config 200
+[debug] [2026-06-30T00:05:10.336Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/webApps/-/config {"projectId":"last-minute-life-saver-fe37b","appId":"1:1024837639870:web:6a74b5e93f991d36fa48ef","storageBucket":"last-minute-life-saver-fe37b.firebasestorage.app","apiKey":"AIzaSyBoK8kpPGOWqk3RyKT5mjMiseC7WDHOpq4","authDomain":"last-minute-life-saver-fe37b.firebaseapp.com","messagingSenderId":"1024837639870","projectNumber":"1024837639870","version":"2"}
