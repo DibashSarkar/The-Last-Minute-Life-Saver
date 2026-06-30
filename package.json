@@ -35,9 +35,7 @@
     "tailwindcss": "^4",
     "typescript": "^5"
   },
-  "pnpm": {
-    "overrides": {
-      "bare-os": "3.9.2"
-    }
+  "overrides": {
+    "bare-os": "3.9.2"
   }
 }
