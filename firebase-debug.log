@@ -1,0 +1,38 @@
+[debug] [2026-06-30T00:04:36.150Z] ----------------------------------------------------------------------
+[debug] [2026-06-30T00:04:36.155Z] Command:       C:\Program Files\nodejs\node.exe E:\Projects\The Last-Minute Life Saver\node_modules\.pnpm\firebase-tools@15.22.3_@types+node@20.19.43\node_modules\firebase-tools\lib\bin\firebase.js deploy --only hosting
+[debug] [2026-06-30T00:04:36.157Z] CLI Version:   15.22.3
+[debug] [2026-06-30T00:04:36.157Z] Platform:      win32
+[debug] [2026-06-30T00:04:36.158Z] Node Version:  v24.13.1
+[debug] [2026-06-30T00:04:36.159Z] Detected Agent: antigravity
+[debug] [2026-06-30T00:04:36.160Z] Time:          Tue Jun 30 2026 05:34:36 GMT+0530 (India Standard Time)
+[debug] [2026-06-30T00:04:36.160Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-06-30T00:04:43.483Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-06-30T00:04:43.485Z] > authorizing via signed-in user (ankitsinghslg100@gmail.com)
+[debug] [2026-06-30T00:04:43.485Z] [iam] checking project last-minute-life-saver-fe37b for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-06-30T00:04:43.490Z] Checked if tokens are valid: true, expires at: 1782779914687
+[debug] [2026-06-30T00:04:43.490Z] Checked if tokens are valid: true, expires at: 1782779914687
+[debug] [2026-06-30T00:04:43.493Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions [none]
+[debug] [2026-06-30T00:04:43.493Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions  x-goog-user-project=last-minute-life-saver-fe37b
+[debug] [2026-06-30T00:04:43.494Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-06-30T00:04:45.232Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions 200
+[debug] [2026-06-30T00:04:45.233Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-06-30T00:04:45.235Z] Checked if tokens are valid: true, expires at: 1782779914687
+[debug] [2026-06-30T00:04:45.235Z] Checked if tokens are valid: true, expires at: 1782779914687
+[debug] [2026-06-30T00:04:45.236Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b [none]
+[debug] [2026-06-30T00:04:45.839Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b 200
+[debug] [2026-06-30T00:04:45.850Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b {"projectId":"last-minute-life-saver-fe37b","projectNumber":"1024837639870","displayName":"Last-minute-life-saver","name":"projects/last-minute-life-saver-fe37b","resources":{"hostingSite":"last-minute-life-saver-fe37b"},"state":"ACTIVE","labels":{"firebase":"enabled"},"etag":"1_75796043-8e43-4d93-bdbe-571ad1133fa2"}
+[debug] [2026-06-30T00:05:06.704Z] defaultcredentials: writing to file C:\Users\Dibash\AppData\Roaming\firebase\ankitsinghslg100_gmail_com_application_default_credentials.json
+[debug] [2026-06-30T00:05:06.710Z] Checked if tokens are valid: true, expires at: 1782779914687
+[debug] [2026-06-30T00:05:06.711Z] Checked if tokens are valid: true, expires at: 1782779914687
+[debug] [2026-06-30T00:05:06.712Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites pageToken=&pageSize=10
+[debug] [2026-06-30T00:05:08.073Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites 200
+[debug] [2026-06-30T00:05:08.073Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites {"sites":[{"name":"projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b","defaultUrl":"https://last-minute-life-saver-fe37b.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2026-06-30T00:05:08.074Z] Checked if tokens are valid: true, expires at: 1782779914687
+[debug] [2026-06-30T00:05:08.075Z] Checked if tokens are valid: true, expires at: 1782779914687
+[debug] [2026-06-30T00:05:08.075Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites 
+[debug] [2026-06-30T00:05:08.816Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites 200
+[debug] [2026-06-30T00:05:08.816Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites {"sites":[{"name":"projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b","defaultUrl":"https://last-minute-life-saver-fe37b.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2026-06-30T00:05:08.816Z] Checked if tokens are valid: true, expires at: 1782779914687
+[debug] [2026-06-30T00:05:08.816Z] Checked if tokens are valid: true, expires at: 1782779914687
+[debug] [2026-06-30T00:05:08.816Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/webApps/-/config [none]

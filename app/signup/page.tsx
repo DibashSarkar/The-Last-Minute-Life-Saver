@@ -235,6 +235,49 @@ export default function SignupPage() {
               </a>
             </div>
 
+            {/* Connection Status Badge */}
+            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] py-2.5 px-3 rounded-xl text-center font-bold uppercase tracking-wider">
+              🟢 Firebase Connected · You may signup using your own email id!
+            </div>
+
+            {/* Quick Demo Accounts Helper */}
+            <div className="border-t border-border pt-4 mt-4 space-y-3 text-xs">
+              <div className="text-center space-y-1">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold block">Quick Access Accounts</span>
+                <span className="text-[9px] text-amber-500 font-medium block">⚠️ Temporary credentials for • Vibe2Ship Hackathon (will be removed in production)</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setName("Dibash Sarkar");
+                    setEmail("dibash6396@gmail.com");
+                    setPassword("admin123");
+                    setConfirmPassword("admin123");
+                  }}
+                  className="bg-primary/5 hover:bg-primary/10 border border-primary/20 hover:border-primary/30 p-2.5 rounded-xl text-left cursor-pointer transition-all active:scale-[0.97]"
+                >
+                  <div className="font-bold text-primary text-[10px] uppercase tracking-wider">Admin Role</div>
+                  <div className="text-[10px] text-muted-foreground truncate">dibash6396@gmail.com</div>
+                  <div className="text-[9px] text-muted-foreground/60 font-mono">pw: admin123</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setName("Demo User");
+                    setEmail("demo@lifesaver.ai");
+                    setPassword("demo123");
+                    setConfirmPassword("demo123");
+                  }}
+                  className="bg-secondary/5 hover:bg-secondary/10 border border-secondary/20 hover:border-secondary/30 p-2.5 rounded-xl text-left cursor-pointer transition-all active:scale-[0.97]"
+                >
+                  <div className="font-bold text-secondary text-[10px] uppercase tracking-wider">Demo User</div>
+                  <div className="text-[10px] text-muted-foreground truncate">demo@lifesaver.ai</div>
+                  <div className="text-[9px] text-muted-foreground/60 font-mono">pw: demo123</div>
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
 

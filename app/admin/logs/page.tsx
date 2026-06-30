@@ -14,6 +14,10 @@ export default function AdminLogsPage() {
         window.location.href = "/login";
         return;
       }
+      if (user.role !== "admin") {
+        window.location.href = "/dashboard";
+        return;
+      }
       setLoading(false);
 
       const sysLogs = getSystemLogs();

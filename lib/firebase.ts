@@ -89,6 +89,7 @@ export interface UserProfile {
   onboarded: boolean;
   age?: number;
   gender?: string;
+  role?: "user" | "admin";
 }
 
 // ─── Firebase Initialization ──────────────────────────────────────────────────
@@ -182,6 +183,8 @@ export async function authLogin(email: string, password?: string): Promise<UserP
       },
     });
     let found = Object.values(users).find((u) => u.email === email) ?? null;
+    const isAdminEmail = email === "dibash6396@gmail.com" || email.endsWith("@lifesaver.ai");
+    const defaultRole = isAdminEmail ? "admin" : "user";
     if (!found) {
       found = {
         uid: `user_${crypto.randomUUID().slice(0, 8)}`,
@@ -189,7 +192,12 @@ export async function authLogin(email: string, password?: string): Promise<UserP
         displayName: email.split("@")[0],
         createdAt: new Date().toISOString(),
         onboarded: false,
+        role: defaultRole,
       };
+      users[found.uid] = found;
+      lsSet("users", users);
+    } else if (!found.role || (isAdminEmail && found.role !== "admin")) {
+      found.role = defaultRole;
       users[found.uid] = found;
       lsSet("users", users);
     }
@@ -228,12 +236,15 @@ export async function authRegister(
   if (!auth) {
     // Sandbox fallback
     const users = lsGet<Record<string, UserProfile>>("users", {});
+    const isAdminEmail = email === "dibash6396@gmail.com" || email.endsWith("@lifesaver.ai");
+    const defaultRole = isAdminEmail ? "admin" : "user";
     const newUser: UserProfile = {
       uid: `user_${crypto.randomUUID().slice(0, 8)}`,
       email,
       displayName: displayName || email.split("@")[0],
       createdAt: new Date().toISOString(),
       onboarded: false,
+      role: defaultRole,
     };
     users[newUser.uid] = newUser;
     lsSet("users", users);
@@ -319,14 +330,25 @@ async function ensureUserDocument(user: User, displayName?: string): Promise<voi
   if (!db) return;
   const ref = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
+  
+  const email = user.email ?? "";
+  const isAdminEmail = email === "dibash6396@gmail.com" || email.endsWith("@lifesaver.ai");
+  const defaultRole = isAdminEmail ? "admin" : "user";
+
   if (!snap.exists()) {
     await setDoc(ref, {
       uid: user.uid,
-      email: user.email ?? "",
-      displayName: displayName ?? user.displayName ?? user.email?.split("@")[0],
+      email: email,
+      displayName: displayName ?? user.displayName ?? email.split("@")[0],
       createdAt: new Date().toISOString(),
       onboarded: false,
+      role: defaultRole,
     } as UserProfile);
+  } else {
+    const data = snap.data();
+    if (!data.role || (isAdminEmail && data.role !== "admin")) {
+      await setDoc(ref, { role: defaultRole }, { merge: true });
+    }
   }
 }
 
@@ -557,4 +579,16 @@ export function incrementTokenConsumption(model: "flash" | "pro", count: number)
   if (model === "flash") s.flashCount += count; else s.proCount += count;
   lsSet("tokenStats", s);
 }
-export async function getMockUsersList(): Promise<UserProfile[]> { return []; }
+export async function getMockUsersList(): Promise<UserProfile[]> {
+  if (!db) {
+    const users = lsGet<Record<string, UserProfile>>("users", {});
+    return Object.values(users);
+  }
+  try {
+    const snap = await getDocs(collection(db, "users"));
+    return snap.docs.map((d) => d.data() as UserProfile);
+  } catch (err) {
+    console.error("Failed to fetch users list:", err);
+    return [];
+  }
+}
