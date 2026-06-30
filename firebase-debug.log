@@ -1,40 +1,715 @@
-[debug] [2026-06-30T00:04:36.150Z] ----------------------------------------------------------------------
-[debug] [2026-06-30T00:04:36.155Z] Command:       C:\Program Files\nodejs\node.exe E:\Projects\The Last-Minute Life Saver\node_modules\.pnpm\firebase-tools@15.22.3_@types+node@20.19.43\node_modules\firebase-tools\lib\bin\firebase.js deploy --only hosting
-[debug] [2026-06-30T00:04:36.157Z] CLI Version:   15.22.3
-[debug] [2026-06-30T00:04:36.157Z] Platform:      win32
-[debug] [2026-06-30T00:04:36.158Z] Node Version:  v24.13.1
-[debug] [2026-06-30T00:04:36.159Z] Detected Agent: antigravity
-[debug] [2026-06-30T00:04:36.160Z] Time:          Tue Jun 30 2026 05:34:36 GMT+0530 (India Standard Time)
-[debug] [2026-06-30T00:04:36.160Z] ----------------------------------------------------------------------
+[debug] [2026-06-30T01:41:31.175Z] ----------------------------------------------------------------------
+[debug] [2026-06-30T01:41:31.178Z] Command:       C:\Program Files\nodejs\node.exe E:\Projects\The Last-Minute Life Saver\node_modules\.pnpm\firebase-tools@15.22.3_@types+node@20.19.43\node_modules\firebase-tools\lib\bin\firebase.js deploy --only hosting --force
+[debug] [2026-06-30T01:41:31.178Z] CLI Version:   15.22.3
+[debug] [2026-06-30T01:41:31.179Z] Platform:      win32
+[debug] [2026-06-30T01:41:31.179Z] Node Version:  v24.13.1
+[debug] [2026-06-30T01:41:31.179Z] Detected Agent: antigravity
+[debug] [2026-06-30T01:41:31.179Z] Time:          Tue Jun 30 2026 07:11:31 GMT+0530 (India Standard Time)
+[debug] [2026-06-30T01:41:31.179Z] ----------------------------------------------------------------------
 [debug] 
-[debug] [2026-06-30T00:04:43.483Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
-[debug] [2026-06-30T00:04:43.485Z] > authorizing via signed-in user (ankitsinghslg100@gmail.com)
-[debug] [2026-06-30T00:04:43.485Z] [iam] checking project last-minute-life-saver-fe37b for permissions ["firebase.projects.get","firebasehosting.sites.update"]
-[debug] [2026-06-30T00:04:43.490Z] Checked if tokens are valid: true, expires at: 1782779914687
-[debug] [2026-06-30T00:04:43.490Z] Checked if tokens are valid: true, expires at: 1782779914687
-[debug] [2026-06-30T00:04:43.493Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions [none]
-[debug] [2026-06-30T00:04:43.493Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions  x-goog-user-project=last-minute-life-saver-fe37b
-[debug] [2026-06-30T00:04:43.494Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
-[debug] [2026-06-30T00:04:45.232Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions 200
-[debug] [2026-06-30T00:04:45.233Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
-[debug] [2026-06-30T00:04:45.235Z] Checked if tokens are valid: true, expires at: 1782779914687
-[debug] [2026-06-30T00:04:45.235Z] Checked if tokens are valid: true, expires at: 1782779914687
-[debug] [2026-06-30T00:04:45.236Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b [none]
-[debug] [2026-06-30T00:04:45.839Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b 200
-[debug] [2026-06-30T00:04:45.850Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b {"projectId":"last-minute-life-saver-fe37b","projectNumber":"1024837639870","displayName":"Last-minute-life-saver","name":"projects/last-minute-life-saver-fe37b","resources":{"hostingSite":"last-minute-life-saver-fe37b"},"state":"ACTIVE","labels":{"firebase":"enabled"},"etag":"1_75796043-8e43-4d93-bdbe-571ad1133fa2"}
-[debug] [2026-06-30T00:05:06.704Z] defaultcredentials: writing to file C:\Users\Dibash\AppData\Roaming\firebase\ankitsinghslg100_gmail_com_application_default_credentials.json
-[debug] [2026-06-30T00:05:06.710Z] Checked if tokens are valid: true, expires at: 1782779914687
-[debug] [2026-06-30T00:05:06.711Z] Checked if tokens are valid: true, expires at: 1782779914687
-[debug] [2026-06-30T00:05:06.712Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites pageToken=&pageSize=10
-[debug] [2026-06-30T00:05:08.073Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites 200
-[debug] [2026-06-30T00:05:08.073Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites {"sites":[{"name":"projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b","defaultUrl":"https://last-minute-life-saver-fe37b.web.app","type":"DEFAULT_SITE"}]}
-[debug] [2026-06-30T00:05:08.074Z] Checked if tokens are valid: true, expires at: 1782779914687
-[debug] [2026-06-30T00:05:08.075Z] Checked if tokens are valid: true, expires at: 1782779914687
-[debug] [2026-06-30T00:05:08.075Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites 
-[debug] [2026-06-30T00:05:08.816Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites 200
-[debug] [2026-06-30T00:05:08.816Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites {"sites":[{"name":"projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b","defaultUrl":"https://last-minute-life-saver-fe37b.web.app","type":"DEFAULT_SITE"}]}
-[debug] [2026-06-30T00:05:08.816Z] Checked if tokens are valid: true, expires at: 1782779914687
-[debug] [2026-06-30T00:05:08.816Z] Checked if tokens are valid: true, expires at: 1782779914687
-[debug] [2026-06-30T00:05:08.816Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/webApps/-/config [none]
-[debug] [2026-06-30T00:05:10.335Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/webApps/-/config 200
-[debug] [2026-06-30T00:05:10.336Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/webApps/-/config {"projectId":"last-minute-life-saver-fe37b","appId":"1:1024837639870:web:6a74b5e93f991d36fa48ef","storageBucket":"last-minute-life-saver-fe37b.firebasestorage.app","apiKey":"AIzaSyBoK8kpPGOWqk3RyKT5mjMiseC7WDHOpq4","authDomain":"last-minute-life-saver-fe37b.firebaseapp.com","messagingSenderId":"1024837639870","projectNumber":"1024837639870","version":"2"}
+[debug] [2026-06-30T01:41:35.443Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-06-30T01:41:35.443Z] > authorizing via signed-in user (ankitsinghslg100@gmail.com)
+[debug] [2026-06-30T01:41:35.443Z] [iam] checking project last-minute-life-saver-fe37b for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-06-30T01:41:35.446Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:41:35.447Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:41:35.448Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions [none]
+[debug] [2026-06-30T01:41:35.448Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions  x-goog-user-project=last-minute-life-saver-fe37b
+[debug] [2026-06-30T01:41:35.448Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-06-30T01:41:37.040Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions 200
+[debug] [2026-06-30T01:41:37.041Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-06-30T01:41:37.042Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:41:37.042Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:41:37.043Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b [none]
+[debug] [2026-06-30T01:41:38.471Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b 200
+[debug] [2026-06-30T01:41:38.471Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b {"projectId":"last-minute-life-saver-fe37b","projectNumber":"1024837639870","displayName":"Last-minute-life-saver","name":"projects/last-minute-life-saver-fe37b","resources":{"hostingSite":"last-minute-life-saver-fe37b"},"state":"ACTIVE","labels":{"firebase":"enabled"},"etag":"1_34086325-ed4f-431a-b1fa-39bfe34f384c"}
+[debug] [2026-06-30T01:41:55.775Z] defaultcredentials: writing to file C:\Users\Dibash\AppData\Roaming\firebase\ankitsinghslg100_gmail_com_application_default_credentials.json
+[debug] [2026-06-30T01:41:55.781Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:41:55.782Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:41:55.782Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites pageToken=&pageSize=10
+[debug] [2026-06-30T01:41:57.205Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites 200
+[debug] [2026-06-30T01:41:57.206Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites {"sites":[{"name":"projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b","defaultUrl":"https://last-minute-life-saver-fe37b.web.app","appId":"1:1024837639870:web:6a74b5e93f991d36fa48ef","type":"DEFAULT_SITE"}]}
+[debug] [2026-06-30T01:41:57.206Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:41:57.206Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:41:57.207Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:1024837639870:web:6a74b5e93f991d36fa48ef/config [none]
+[debug] [2026-06-30T01:41:58.959Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:1024837639870:web:6a74b5e93f991d36fa48ef/config 200
+[debug] [2026-06-30T01:41:58.959Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:1024837639870:web:6a74b5e93f991d36fa48ef/config {"projectId":"last-minute-life-saver-fe37b","appId":"1:1024837639870:web:6a74b5e93f991d36fa48ef","storageBucket":"last-minute-life-saver-fe37b.firebasestorage.app","apiKey":"AIzaSyBoK8kpPGOWqk3RyKT5mjMiseC7WDHOpq4","authDomain":"last-minute-life-saver-fe37b.firebaseapp.com","messagingSenderId":"1024837639870","projectNumber":"1024837639870","version":"2"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 16.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2026-06-30T01:42:45.070Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:42:45.070Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:42:45.071Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b [none]
+[debug] [2026-06-30T01:42:46.320Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b 200
+[debug] [2026-06-30T01:42:46.320Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b {"name":"projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b","defaultUrl":"https://last-minute-life-saver-fe37b.web.app","appId":"1:1024837639870:web:6a74b5e93f991d36fa48ef","type":"DEFAULT_SITE"}
+[info] ▲ Next.js 16.2.9 (Turbopack)
+
+[info] - Environments: .env.local
+
+
+[info]   Creating an optimized production build ...
+
+[info] ✓ Compiled successfully in 20.0s
+
+[info]   Running TypeScript ...
+
+[info]   Finished TypeScript in 15.0s ...
+
+[info]   Collecting page data using 7 workers ...
+
+[info]   Generating static pages using 7 workers (0/32) ...
+
+[info]   Generating static pages using 7 workers (8/32) 
+
+[info]   Generating static pages using 7 workers (16/32) 
+
+[info]   Generating static pages using 7 workers (24/32) 
+
+[info] ✓ Generating static pages using 7 workers (32/32) in 1854ms
+
+[info]   Finalizing page optimization ...
+
+[info] 
+
+[info] Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /admin
+├ ○ /admin/logs
+├ ○ /admin/tokens
+├ ○ /admin/users
+├ ƒ /api/auto-negotiate
+├ ƒ /api/crisis-communication
+├ ƒ /api/panic-dump
+├ ƒ /api/pre-research
+├ ƒ /api/stuck-helper
+├ ○ /contact
+├ ○ /cookie-policy
+├ ○ /dashboard
+├ ○ /dashboard/analytics
+├ ○ /dashboard/focus
+├ ○ /dashboard/history
+├ ○ /dashboard/settings
+├ ○ /dashboard/workspace
+├ ○ /disclaimer
+├ ○ /features
+├ ○ /focus
+├ ○ /forgot-password
+├ ○ /login
+├ ○ /onboarding
+├ ○ /pricing
+├ ○ /privacy-policy
+├ ○ /signup
+└ ○ /terms-and-conditions
+
+
+[info] 
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+[info] Building a Cloud Function to run this application. This is needed due to:
+[info]  • non-static component /api/auto-negotiate/route
+[info]  • non-static component /api/crisis-communication/route
+[info]  • non-static component /api/panic-dump/route
+[info]  • non-static component /api/pre-research/route
+[info]  • non-static component /api/stuck-helper/route
+[info] 
+[debug] [2026-06-30T01:45:38.002Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:38.004Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:38.005Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b [none]
+[debug] [2026-06-30T01:45:39.343Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b 200
+[debug] [2026-06-30T01:45:39.343Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b {"name":"projects/last-minute-life-saver-fe37b/sites/last-minute-life-saver-fe37b","defaultUrl":"https://last-minute-life-saver-fe37b.web.app","appId":"1:1024837639870:web:6a74b5e93f991d36fa48ef","type":"DEFAULT_SITE"}
+[debug] [2026-06-30T01:45:52.602Z] [web frameworks] effective firebase.json:  {
+  "hosting": [
+    {
+      "source": ".",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "site": "last-minute-life-saver-fe37b",
+      "rewrites": [
+        {
+          "source": "**",
+          "function": {
+            "functionId": "ssrlastminutelifesaverf",
+            "region": "us-central1",
+            "pinTag": true
+          }
+        }
+      ],
+      "redirects": [],
+      "headers": [
+        {
+          "source": "/_not-found",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/_not-found/layout,_N_T_/_not-found/page,_N_T_/_not-found"
+            }
+          ]
+        },
+        {
+          "source": "/about",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/about/layout,_N_T_/about/page,_N_T_/about"
+            }
+          ]
+        },
+        {
+          "source": "/admin/logs",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/logs/layout,_N_T_/admin/logs/page,_N_T_/admin/logs"
+            }
+          ]
+        },
+        {
+          "source": "/_global-error",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/_global-error/layout,_N_T_/_global-error/page,_N_T_/_global-error"
+            }
+          ]
+        },
+        {
+          "source": "/admin/tokens",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/tokens/layout,_N_T_/admin/tokens/page,_N_T_/admin/tokens"
+            }
+          ]
+        },
+        {
+          "source": "/dashboard/focus",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/dashboard/layout,_N_T_/dashboard/focus/layout,_N_T_/dashboard/focus/page,_N_T_/dashboard/focus"
+            }
+          ]
+        },
+        {
+          "source": "/admin",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/page,_N_T_/admin"
+            }
+          ]
+        },
+        {
+          "source": "/admin/users",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/users/layout,_N_T_/admin/users/page,_N_T_/admin/users"
+            }
+          ]
+        },
+        {
+          "source": "/cookie-policy",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/cookie-policy/layout,_N_T_/cookie-policy/page,_N_T_/cookie-policy"
+            }
+          ]
+        },
+        {
+          "source": "/contact",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/contact/layout,_N_T_/contact/page,_N_T_/contact"
+            }
+          ]
+        },
+        {
+          "source": "/dashboard/history",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/dashboard/layout,_N_T_/dashboard/history/layout,_N_T_/dashboard/history/page,_N_T_/dashboard/history"
+            }
+          ]
+        },
+        {
+          "source": "/dashboard/analytics",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/dashboard/layout,_N_T_/dashboard/analytics/layout,_N_T_/dashboard/analytics/page,_N_T_/dashboard/analytics"
+            }
+          ]
+        },
+        {
+          "source": "/dashboard",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/dashboard/layout,_N_T_/dashboard/page,_N_T_/dashboard"
+            }
+          ]
+        },
+        {
+          "source": "/dashboard/workspace",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/dashboard/layout,_N_T_/dashboard/workspace/layout,_N_T_/dashboard/workspace/page,_N_T_/dashboard/workspace"
+            }
+          ]
+        },
+        {
+          "source": "/dashboard/settings",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/dashboard/layout,_N_T_/dashboard/settings/layout,_N_T_/dashboard/settings/page,_N_T_/dashboard/settings"
+            }
+          ]
+        },
+        {
+          "source": "/features",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/features/layout,_N_T_/features/page,_N_T_/features"
+            }
+          ]
+        },
+        {
+          "source": "/favicon.ico",
+          "headers": [
+            {
+              "key": "cache-control",
+              "value": "public, max-age=0, must-revalidate"
+            },
+            {
+              "key": "content-type",
+              "value": "image/x-icon"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/favicon.ico/layout,_N_T_/favicon.ico/route,_N_T_/favicon.ico"
+            }
+          ]
+        },
+        {
+          "source": "/focus",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/focus/layout,_N_T_/focus/page,_N_T_/focus"
+            }
+          ]
+        },
+        {
+          "source": "/disclaimer",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/disclaimer/layout,_N_T_/disclaimer/page,_N_T_/disclaimer"
+            }
+          ]
+        },
+        {
+          "source": "/forgot-password",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/forgot-password/layout,_N_T_/forgot-password/page,_N_T_/forgot-password"
+            }
+          ]
+        },
+        {
+          "source": "/pricing",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/pricing/layout,_N_T_/pricing/page,_N_T_/pricing"
+            }
+          ]
+        },
+        {
+          "source": "/onboarding",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/onboarding/layout,_N_T_/onboarding/page,_N_T_/onboarding"
+            }
+          ]
+        },
+        {
+          "source": "/terms-and-conditions",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/terms-and-conditions/layout,_N_T_/terms-and-conditions/page,_N_T_/terms-and-conditions"
+            }
+          ]
+        },
+        {
+          "source": "/privacy-policy",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/privacy-policy/layout,_N_T_/privacy-policy/page,_N_T_/privacy-policy"
+            }
+          ]
+        },
+        {
+          "source": "/signup",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/signup/layout,_N_T_/signup/page,_N_T_/signup"
+            }
+          ]
+        },
+        {
+          "source": "/login",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "300"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/login/layout,_N_T_/login/page,_N_T_/login"
+            }
+          ]
+        },
+        {
+          "source": "**/*.[jt]s",
+          "headers": [
+            {
+              "key": "Set-Cookie",
+              "value": "__FIREBASE_DEFAULTS__=eyJjb25maWciOnsicHJvamVjdElkIjoibGFzdC1taW51dGUtbGlmZS1zYXZlci1mZTM3YiIsImFwcElkIjoiMToxMDI0ODM3NjM5ODcwOndlYjo2YTc0YjVlOTNmOTkxZDM2ZmE0OGVmIiwic3RvcmFnZUJ1Y2tldCI6Imxhc3QtbWludXRlLWxpZmUtc2F2ZXItZmUzN2IuZmlyZWJhc2VzdG9yYWdlLmFwcCIsImFwaUtleSI6IkFJemFTeUJvSzhrcFBHT1dxazNSeUtUNW1qTWlzZUM3V0RIT3BxNCIsImF1dGhEb21haW4iOiJsYXN0LW1pbnV0ZS1saWZlLXNhdmVyLWZlMzdiLmZpcmViYXNlYXBwLmNvbSIsIm1lc3NhZ2luZ1NlbmRlcklkIjoiMTAyNDgzNzYzOTg3MCIsInByb2plY3ROdW1iZXIiOiIxMDI0ODM3NjM5ODcwIiwidmVyc2lvbiI6IjIifSwiX2F1dGhUb2tlblN5bmNVUkwiOiIvX19zZXNzaW9uIn0; SameSite=Strict; Expires=2028-05-24T12:25:52.601Z; Path=/;"
+            }
+          ]
+        }
+      ],
+      "cleanUrls": true,
+      "trailingSlash": false,
+      "public": ".firebase\\last-minute-life-saver-fe37b\\hosting",
+      "webFramework": "next_ssr"
+    }
+  ],
+  "functions": [
+    {
+      "source": ".firebase\\last-minute-life-saver-fe37b\\functions",
+      "codebase": "firebase-frameworks-last-minute-life-saver-fe37b"
+    }
+  ]
+}
+[debug] [2026-06-30T01:45:52.603Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-06-30T01:45:52.603Z] > authorizing via signed-in user (ankitsinghslg100@gmail.com)
+[debug] [2026-06-30T01:45:52.604Z] [iam] checking project last-minute-life-saver-fe37b for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2026-06-30T01:45:52.604Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:52.604Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:52.604Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions [none]
+[debug] [2026-06-30T01:45:52.604Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions  x-goog-user-project=last-minute-life-saver-fe37b
+[debug] [2026-06-30T01:45:52.604Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2026-06-30T01:45:54.152Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions 200
+[debug] [2026-06-30T01:45:54.152Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2026-06-30T01:45:54.154Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:54.154Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:54.154Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v1/projects/last-minute-life-saver-fe37b/locations/-/functions [none]
+[debug] [2026-06-30T01:45:55.026Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v1/projects/last-minute-life-saver-fe37b/locations/-/functions 200
+[debug] [2026-06-30T01:45:55.026Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v1/projects/last-minute-life-saver-fe37b/locations/-/functions {}
+[debug] [2026-06-30T01:45:55.031Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:55.031Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:55.031Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/last-minute-life-saver-fe37b/locations/-/functions filter=environment%3D%22GEN_2%22
+[debug] [2026-06-30T01:45:56.672Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/last-minute-life-saver-fe37b/locations/-/functions 200
+[debug] [2026-06-30T01:45:56.672Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/last-minute-life-saver-fe37b/locations/-/functions {"functions":[{"name":"projects/last-minute-life-saver-fe37b/locations/us-central1/functions/ssrlastminutelifesaverf","buildConfig":{"build":"projects/1024837639870/locations/us-central1/builds/8ad2eedf-550a-4977-bfbf-042823ef9965","runtime":"nodejs24","entryPoint":"ssrlastminutelifesaverf","source":{"storageSource":{"bucket":"gcf-v2-sources-1024837639870-us-central1","object":"ssrlastminutelifesaverf/function-source.zip","generation":"1782782750042654"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"dockerRepository":"projects/last-minute-life-saver-fe37b/locations/us-central1/repositories/gcf-artifacts","sourceProvenance":{"resolvedStorageSource":{"bucket":"gcf-v2-sources-1024837639870-us-central1","object":"ssrlastminutelifesaverf/function-source.zip","generation":"1782782750042654"}},"dockerRegistry":"ARTIFACT_REGISTRY","serviceAccount":"projects/last-minute-life-saver-fe37b/serviceAccounts/1024837639870-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/last-minute-life-saver-fe37b/locations/us-central1/services/ssrlastminutelifesaverf","timeoutSeconds":60,"environmentVariables":{"VERCEL_URL":"last-minute-life-saver-fe37b.web.app","__FIREBASE_FRAMEWORKS_ENTRY__":"next.js","__FIREBASE_DEFAULTS__":"{\"config\":{\"projectId\":\"last-minute-life-saver-fe37b\",\"appId\":\"1:1024837639870:web:6a74b5e93f991d36fa48ef\",\"storageBucket\":\"last-minute-life-saver-fe37b.firebasestorage.app\",\"apiKey\":\"AIzaSyBoK8kpPGOWqk3RyKT5mjMiseC7WDHOpq4\",\"authDomain\":\"last-minute-life-saver-fe37b.firebaseapp.com\",\"messagingSenderId\":\"1024837639870\",\"projectNumber\":\"1024837639870\",\"version\":\"2\"},\"_authTokenSyncURL\":\"/__session\"}","FIREBASE_CONFIG":"{\"projectId\":\"last-minute-life-saver-fe37b\",\"storageBucket\":\"last-minute-life-saver-fe37b.firebasestorage.app\"}","GCLOUD_PROJECT":"last-minute-life-saver-fe37b","EVENTARC_CLOUD_EVENT_SOURCE":"projects/last-minute-life-saver-fe37b/locations/us-central1/services/ssrlastminutelifesaverf","FUNCTION_TARGET":"ssrlastminutelifesaverf","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","uri":"https://ssrlastminutelifesaverf-zttj2sfaea-uc.a.run.app","serviceAccountEmail":"1024837639870-compute@developer.gserviceaccount.com","availableMemory":"256Mi","allTrafficOnLatestRevision":true,"revision":"ssrlastminutelifesaverf-00001-yop","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"state":"ACTIVE","updateTime":"2026-06-30T01:41:08.174146530Z","labels":{"deployment-tool":"cli-firebase","firebase-functions-codebase":"firebase-frameworks-last-minute-life-saver-fe37b","firebase-functions-hash":"cb640be77f6c88dbd380c1d3b5dfe223a619fedf"},"environment":"GEN_2","url":"https://us-central1-last-minute-life-saver-fe37b.cloudfunctions.net/ssrlastminutelifesaverf","createTime":"2026-06-30T01:25:50.545335738Z","satisfiesPzi":true}]}
+[info] i  hosting: The following function(s) are pinned to site last-minute-life-saver-fe37b and will be deployed as well: ssrlastminutelifesaverf 
+[info] 
+[info] === Deploying to 'last-minute-life-saver-fe37b'...
+[info] 
+[info] i  deploying functions, hosting 
+[debug] [2026-06-30T01:45:56.685Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:56.685Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:56.685Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b [none]
+[debug] [2026-06-30T01:45:57.048Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b 200
+[debug] [2026-06-30T01:45:57.049Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b {"projectNumber":"1024837639870","projectId":"last-minute-life-saver-fe37b","lifecycleState":"ACTIVE","name":"Last-minute-life-saver","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-06-29T23:31:21.313Z"}
+[info] i  functions: preparing codebase firebase-frameworks-last-minute-life-saver-fe37b for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2026-06-30T01:45:57.058Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:57.058Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:57.059Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/adminSdkConfig [none]
+[debug] [2026-06-30T01:45:57.611Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/adminSdkConfig 200
+[debug] [2026-06-30T01:45:57.611Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/adminSdkConfig {"projectId":"last-minute-life-saver-fe37b","storageBucket":"last-minute-life-saver-fe37b.firebasestorage.app"}
+[debug] [2026-06-30T01:45:57.612Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:57.612Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:45:57.612Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/configs [none]
+[debug] [2026-06-30T01:45:59.053Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/configs 200
+[debug] [2026-06-30T01:45:59.053Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/last-minute-life-saver-fe37b/configs {}
+[debug] [2026-06-30T01:45:59.055Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2026-06-30T01:46:00.929Z] > [functions] package.json contents: {
+  "name": "last-minute-life-saver",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@base-ui/react": "^1.6.0",
+    "@google/genai": "^2.10.0",
+    "@tabler/icons-react": "^3.44.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "firebase": "^12.15.0",
+    "firebase-admin": "^13.10.0",
+    "next": "16.2.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "shadcn": "^4.12.0",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0",
+    "firebase-frameworks": "^0.11.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "main": "server.js",
+  "engines": {
+    "node": "24"
+  }
+}
+[debug] [2026-06-30T01:46:00.930Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase firebase-frameworks-last-minute-life-saver-fe37b to determine what to deploy 
+[debug] [2026-06-30T01:46:00.932Z] Could not find functions.yaml. Must use http discovery
+[debug] [2026-06-30T01:46:00.967Z] Found firebase-functions binary at 'E:\Projects\The Last-Minute Life Saver\.firebase\last-minute-life-saver-fe37b\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8711
+
+[debug] [2026-06-30T01:46:02.278Z] Got response from /__/functions.yaml {"endpoints":{"ssrlastminutelifesaverf":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"ssrlastminutelifesaverf"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] i  extensions: ensuring required API firebaseextensions.googleapis.com is enabled... 
+[debug] [2026-06-30T01:46:06.329Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-06-30T01:46:06.329Z] > authorizing via signed-in user (ankitsinghslg100@gmail.com)
+[debug] [2026-06-30T01:46:06.330Z] [iam] checking project last-minute-life-saver-fe37b for permissions ["firebase.projects.get","firebaseextensions.instances.list"]
+[debug] [2026-06-30T01:46:06.330Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:46:06.330Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:46:06.330Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions [none]
+[debug] [2026-06-30T01:46:06.331Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions  x-goog-user-project=last-minute-life-saver-fe37b
+[debug] [2026-06-30T01:46:06.331Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[debug] [2026-06-30T01:46:07.919Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions 200
+[debug] [2026-06-30T01:46:07.919Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/last-minute-life-saver-fe37b:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[debug] [2026-06-30T01:46:07.920Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:46:07.920Z] Checked if tokens are valid: true, expires at: 1782785629603
+[debug] [2026-06-30T01:46:07.920Z] >>> [apiv2][query] GET https://firebaseextensions.googleapis.com/v1beta/projects/last-minute-life-saver-fe37b/instances pageSize=100&pageToken=
+[debug] [2026-06-30T01:46:09.774Z] <<< [apiv2][status] GET https://firebaseextensions.googleapis.com/v1beta/projects/last-minute-life-saver-fe37b/instances 200
+[debug] [2026-06-30T01:46:09.774Z] <<< [apiv2][body] GET https://firebaseextensions.googleapis.com/v1beta/projects/last-minute-life-saver-fe37b/instances {}
+[info] i  functions: Loaded environment variables from .env. 
+[info] i  functions: preparing .firebase\last-minute-life-saver-fe37b\functions directory for uploading... 
