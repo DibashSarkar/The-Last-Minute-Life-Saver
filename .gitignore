@@ -41,3 +41,5 @@ yarn-error.log*
 next-env.d.ts
 /.firebase/last-minute-life-saver-fe37b
 .firebase/hosting.LmZpcmViYXNlXGxhc3QtbWludXRlLWxpZmUtc2F2ZXItZmUzN2JcaG9zdGluZw.cache
+*.log
+firebase-debug.log
